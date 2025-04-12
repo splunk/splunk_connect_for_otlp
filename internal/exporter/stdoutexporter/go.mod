@@ -1,4 +1,4 @@
-module github.com/otel-warez/otlpstdout/internal/exporter/stdoutexporter
+module github.com/splunk/otlpinput/internal/exporter/stdoutexporter
 
 go 1.23.0
 

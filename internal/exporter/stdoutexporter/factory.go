@@ -1,4 +1,4 @@
-// Copyright The OpenTelemetry Authors
+// Copyright Splunk Inc. 2025
 // SPDX-License-Identifier: Apache-2.0
 
 package stdoutexporter
@@ -14,9 +14,6 @@ const (
 	typeStr        = "stdout"
 	stabilityLevel = component.StabilityLevelDevelopment
 )
-
-type Config struct {
-}
 
 // NewFactory creates a factory for stdin receiver.
 func NewFactory() exporter.Factory {

@@ -1,12 +1,15 @@
 
 .PHONY := build
-build: ta/otlpstdout/bin/otlpstdout
+build: ta/otlpinput/linux_x86_64/bin/otlpinput ta/otlpinput/windows_x86_64/bin/otlpinput
 
-tgz:
-	tar --format ustar -C ta -czvf ta.tgz otlpstdout
+tgz: build
+	tar --format ustar -C ta -czvf otlpinput.tgz otlpinput
 
-ta/otlpstdout/bin/otlpstdout: main.go
-	GOOS=linux GOARCH=amd64 go build -trimpath -o ./ta/otlpstdout/bin/otlpstdout .
+ta/otlpinput/linux_x86_64/bin/otlpinput: $(shell find  **/*.go -type f)
+	GOOS=linux GOARCH=amd64 go build -C cmd/otlpinput -trimpath -o ../../ta/otlpinput/linux_x86_64/bin/otlpinput .
+
+ta/otlpinput/windows_x86_64/bin/otlpinput: $(shell find  **/*.go -type f)
+	GOOS=windows GOARCH=amd64 go build -C cmd/otlpinput -trimpath -o ../../ta/otlpinput/windows_x86_64/bin/otlpinput .
 
 splunk:
 	docker run --rm -it -v $(PWD)/ta.tgz:/tmp/ta.tgz \

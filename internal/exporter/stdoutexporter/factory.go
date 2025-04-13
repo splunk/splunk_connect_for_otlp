@@ -15,7 +15,7 @@ const (
 	stabilityLevel = component.StabilityLevelDevelopment
 )
 
-// NewFactory creates a factory for stdin receiver.
+// NewFactory creates a factory for stdout exporter.
 func NewFactory() exporter.Factory {
 	return exporter.NewFactory(
 		component.MustNewType(typeStr),
@@ -23,7 +23,9 @@ func NewFactory() exporter.Factory {
 		exporter.WithLogs(newLogsExporter, stabilityLevel))
 }
 
-// CreateDefaultConfig creates the default configuration for stdin receiver.
+// CreateDefaultConfig creates the default configuration for stdout exporter.
 func createDefaultConfig() component.Config {
-	return &Config{}
+	return &Config{
+		Template: "{{ .LogRecord.Timestamp | iso8601 }} {{.LogRecord.Body.AsString }} {{ .LogRecord.Attributes | mapToString }} {{ .Resource.Attributes | mapToString }}",
+	}
 }

@@ -6,9 +6,11 @@ tgz: build
 	tar --format ustar -C ta -czvf otlpinput.tgz otlpinput
 
 ta/otlpinput/linux_x86_64/bin/otlpinput: $(shell find  **/*.go -type f)
+	mkdir -p ../../ta/otlpinput/linux_x86_64/bin
 	GOOS=linux GOARCH=amd64 go build -C cmd/otlpinput -trimpath -o ../../ta/otlpinput/linux_x86_64/bin/otlpinput .
 
 ta/otlpinput/windows_x86_64/bin/otlpinput: $(shell find  **/*.go -type f)
+	mkdir -p ../../ta/otlpinput/windows_x86_64/bin
 	GOOS=windows GOARCH=amd64 go build -C cmd/otlpinput -trimpath -o ../../ta/otlpinput/windows_x86_64/bin/otlpinput .
 
 splunk:
@@ -20,3 +22,6 @@ splunk:
 		-p 4318:4318 \
 		-p 8000:8000 \
 		splunk/splunk:9.3
+
+test:
+	go test -v ./...

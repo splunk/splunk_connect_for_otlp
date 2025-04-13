@@ -26,5 +26,5 @@ jobs:
         with:
           username: ${{ secrets.SPL_COM_USER }}
           password: ${{ secrets.SPL_COM_PASSWORD }}
-          app_path: ta/
+          app_path: ta/otlpinput/
           included_tags: "cloud,self-service"

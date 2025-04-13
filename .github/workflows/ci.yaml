@@ -1,0 +1,27 @@
+name: ci
+on:
+  push:
+    branches: [main]
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+*"
+  pull_request:
+
+permissions: read-all
+
+jobs:
+  ci:
+    timeout-minutes: 30
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5
+        with:
+          go-version: "1.23.8"
+          cache: true
+      - name: Build
+        run: make tgz
+      - name: Tests
+        run: make test
+      - uses: splunk/appinspect-cli-action@b921af152d0c2c3a2d9692d4c8e5f521a05f126e # v2.9.0
+        with:
+          app_path: 'ta'

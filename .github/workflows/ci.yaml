@@ -22,6 +22,9 @@ jobs:
         run: make tgz
       - name: Tests
         run: make test
-      - uses: splunk/appinspect-cli-action@b921af152d0c2c3a2d9692d4c8e5f521a05f126e # v2.9.0
+      - uses: splunk/appinspect-api-action@86013a62b0c773d1e9cd4623080b4495973936c3 # v3.0.5
         with:
-          app_path: 'ta/otlpinput'
+          username: ${{ secrets.SPL_COM_USER }}
+          password: ${{ secrets.SPL_COM_PASSWORD }}
+          app_path: ta/
+          included_tags: "cloud,self-service"

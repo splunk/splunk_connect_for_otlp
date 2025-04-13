@@ -24,4 +24,4 @@ jobs:
         run: make test
       - uses: splunk/appinspect-cli-action@b921af152d0c2c3a2d9692d4c8e5f521a05f126e # v2.9.0
         with:
-          app_path: 'ta'
+          app_path: 'ta/otlpinput'

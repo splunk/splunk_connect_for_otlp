@@ -8,4 +8,4 @@ Steps:
 3. Create a release tag `vx.x.x`
 4. Push the tag
 5. Make the addon `make tgz`
-6. Add the otlpinput.tgz file to the release artifacts.
+6. Create the github release, add otlpinput.tgz file to the release artifacts.

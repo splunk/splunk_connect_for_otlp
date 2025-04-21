@@ -27,5 +27,6 @@ splunk: otlpinput.tgz
 		-p 8000:8000 \
 		splunk/splunk:9.3
 
+.PHONY := test
 test:
 	go test -v ./...

@@ -17,6 +17,7 @@ require (
 )
 
 require (
+	github.com/cenkalti/backoff/v5 v5.0.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
@@ -49,12 +50,15 @@ require (
 	go.opentelemetry.io/collector/config/confighttp v0.123.0 // indirect
 	go.opentelemetry.io/collector/config/confignet v1.29.0 // indirect
 	go.opentelemetry.io/collector/config/configopaque v1.29.0 // indirect
+	go.opentelemetry.io/collector/config/configretry v1.29.0 // indirect
 	go.opentelemetry.io/collector/config/configtls v1.29.0 // indirect
 	go.opentelemetry.io/collector/confmap v1.29.0 // indirect
 	go.opentelemetry.io/collector/consumer v1.29.0 // indirect
 	go.opentelemetry.io/collector/consumer/consumererror v0.123.0 // indirect
 	go.opentelemetry.io/collector/consumer/xconsumer v0.123.0 // indirect
+	go.opentelemetry.io/collector/extension v1.29.0 // indirect
 	go.opentelemetry.io/collector/extension/extensionauth v1.29.0 // indirect
+	go.opentelemetry.io/collector/extension/xextension v0.123.0 // indirect
 	go.opentelemetry.io/collector/featuregate v1.29.0 // indirect
 	go.opentelemetry.io/collector/internal/sharedcomponent v0.123.0 // indirect
 	go.opentelemetry.io/collector/internal/telemetry v0.123.0 // indirect

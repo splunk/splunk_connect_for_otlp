@@ -10,6 +10,7 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/exporter"
+	"go.opentelemetry.io/collector/exporter/exporterhelper"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
 	"os"
@@ -17,7 +18,7 @@ import (
 	"time"
 )
 
-func newLogsExporter(_ context.Context, _ exporter.Settings, cfg component.Config) (exporter.Logs, error) {
+func newLogsExporter(ctx context.Context, set exporter.Settings, cfg component.Config) (exporter.Logs, error) {
 	oCfg := cfg.(*Config)
 	tmpl := template.New("stdout")
 	tmpl.Funcs(map[string]any{
@@ -41,27 +42,19 @@ func newLogsExporter(_ context.Context, _ exporter.Settings, cfg component.Confi
 		return nil, err
 	}
 
-	return &stdoutExporter{
+	e := &stdoutExporter{
 		format: tmpl,
-	}, nil
+	}
+
+	return exporterhelper.NewLogs(ctx, set, cfg, e.ConsumeLogs,
+		exporterhelper.WithCapabilities(consumer.Capabilities{
+			MutatesData: false,
+		}),
+		exporterhelper.WithQueueBatch(oCfg.QueueBatchConfig, exporterhelper.NewLogsQueueBatchSettings()))
 }
 
 type stdoutExporter struct {
 	format *template.Template
-}
-
-func (s *stdoutExporter) Start(_ context.Context, _ component.Host) error {
-	return nil
-}
-
-func (s *stdoutExporter) Shutdown(_ context.Context) error {
-	return nil
-}
-
-func (s *stdoutExporter) Capabilities() consumer.Capabilities {
-	return consumer.Capabilities{
-		MutatesData: false,
-	}
 }
 
 type logData struct {

@@ -6,6 +6,7 @@ package stdoutexporter
 import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/exporter"
+	"go.opentelemetry.io/collector/exporter/exporterhelper"
 )
 
 // This file implements factory for stdout exporter.
@@ -26,6 +27,7 @@ func NewFactory() exporter.Factory {
 // CreateDefaultConfig creates the default configuration for stdout exporter.
 func createDefaultConfig() component.Config {
 	return &Config{
-		Template: "{{ .LogRecord.Timestamp | iso8601 }} {{.LogRecord.Body.AsString }} {{ .LogRecord.Attributes | mapToString }} {{ .Resource.Attributes | mapToString }}",
+		Template:         "{{ .LogRecord.Timestamp | iso8601 }} {{.LogRecord.Body.AsString }} {{ .LogRecord.Attributes | mapToString }} {{ .Resource.Attributes | mapToString }}",
+		QueueBatchConfig: exporterhelper.NewDefaultQueueConfig(),
 	}
 }

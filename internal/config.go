@@ -11,7 +11,6 @@ import (
 )
 
 const (
-	DefaultFormat        = "{{ .LogRecord.Timestamp | iso8601 }} {{.LogRecord.Body.AsString }} {{ .LogRecord.Attributes | mapToString }} {{ .Resource.Attributes | mapToString }}"
 	DefaultGrpcPort      = 4317
 	DefaultHTTPPort      = 4318
 	DefaultListenAddress = "0.0.0.0"
@@ -36,16 +35,13 @@ type XMLParam struct {
 	Value string `xml:",innerxml"`
 }
 
-func (x XMLInput) Extract() (string, int, int, string) {
-	format := DefaultFormat
+func (x XMLInput) Extract() (int, int, string) {
 	grpcPort := DefaultGrpcPort
 	httpPort := DefaultHTTPPort
 	listeningAddress := DefaultListenAddress
 
 	for _, p := range x.Configuration.Stanza.Params {
 		switch p.Name {
-		case "format":
-			format = p.Value
 		case "grpc_port":
 			grpcPort, _ = strconv.Atoi(p.Value)
 		case "http_port":
@@ -55,7 +51,7 @@ func (x XMLInput) Extract() (string, int, int, string) {
 		}
 	}
 
-	return format, grpcPort, httpPort, listeningAddress
+	return grpcPort, httpPort, listeningAddress
 }
 
 func ReadFromStdin() (XMLInput, error) {

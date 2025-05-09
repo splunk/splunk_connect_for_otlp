@@ -19,7 +19,6 @@ func TestParseInput(t *testing.T) {
   <checkpoint_dir>/opt/splunk/var/lib/splunk/modinputs/otlpinput</checkpoint_dir>
   <configuration>
     <stanza name="otlpinput://specialmind" app="search">
-      <param name="format">something</param>
       <param name="grpc_port">4317</param>
       <param name="host">$decideOnStartup</param>
       <param name="http_port">4318</param>
@@ -38,9 +37,8 @@ func TestParseInput(t *testing.T) {
 	require.Equal(t, "otlpinput://specialmind", config.Configuration.Stanza.Name)
 	require.Equal(t, "4318", config.Configuration.Stanza.Params[3].Value)
 
-	format, grpcPort, httpPort, listeningAddress := config.Extract()
+	grpcPort, httpPort, listeningAddress := config.Extract()
 
-	require.Equal(t, "something", format)
 	require.Equal(t, 4317, grpcPort)
 	require.Equal(t, "0.0.0.0", listeningAddress)
 	require.Equal(t, 4318, httpPort)

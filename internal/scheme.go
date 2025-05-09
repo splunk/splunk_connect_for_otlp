@@ -35,11 +35,6 @@ const Scheme = `
                 <required_on_create>false</required_on_create>
             </arg>
 
-            <arg name="format">
-                <title>Format</title>
-                <description>The format of the logs to output, as a Go template.</description>
-                <required_on_create>false</required_on_create>
-            </arg>
         </args>
     </endpoint>
 </scheme>`

@@ -22,6 +22,7 @@ splunk: otlpinput.tgz
 		-e "SPLUNK_PASSWORD=changeme" \
 		-e "SPLUNK_APPS_URL=file:///tmp/otlpinput.tgz" \
 		-e "SPLUNK_START_ARGS=--accept-license" \
+		-e "SPLUNK_HEC_TOKEN=000000-0000-00000-0000000000" \
 		-p 4317:4317 \
 		-p 4318:4318 \
 		-p 8000:8000 \

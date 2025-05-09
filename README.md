@@ -10,13 +10,6 @@ The input is configured as a data input in the Splunk Data Input settings.
 You can set:
 * The gRPC port and HTTP ports the OTLP receiver will listen on
 * The listening address on which the OTLP input
-* The format of the logs being emitted. The default emitted matches the `_otlpinput` sourcetype (see below).
-
-### Sourcetype
-
-The technical addon defines a sourcetype `_otlpinput` to be used with the default format.
-
-It creates new records on detection of timestamps in RFC-3339 format.
 
 ## Build
 
@@ -33,3 +26,11 @@ This will build the binaries, and assemble the TA tar.gz archive.
 
 The archive is created as otlpinput.tgz.
 
+## Testing
+
+You can generate a payload using telemetrygen:
+```shell
+$> telemetrygen metrics --otlp-insecure --otlp-endpoint 0.0.0.0:4317 --metrics 100 --workers 10 --otlp-header Authorization=\"Splunk\ 000000-0000-00000-0000000000\"
+$> telemetrygen logs --otlp-insecure --otlp-endpoint 0.0.0.0:4317 --logs 100 --workers 10 --otlp-header Authorization=\"Splunk\ 000000-0000-00000-0000000000\"
+$> telemetrygen traces --otlp-insecure --otlp-endpoint 0.0.0.0:4317 --traces 100 --workers 10 --otlp-header Authorization=\"Splunk\ 000000-0000-00000-0000000000\"
+```

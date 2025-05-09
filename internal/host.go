@@ -18,6 +18,7 @@ var _ componentstatus.Reporter = &TTYHost{}
 type TTYHost struct {
 	ErrStatus    chan error
 	shutdownOnce sync.Once
+	Extensions   map[component.ID]component.Component
 }
 
 func (t *TTYHost) Start() {
@@ -45,5 +46,5 @@ func (t *TTYHost) Report(event *componentstatus.Event) {
 }
 
 func (t *TTYHost) GetExtensions() map[component.ID]component.Component {
-	return nil
+	return t.Extensions
 }

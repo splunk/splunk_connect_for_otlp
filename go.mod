@@ -3,6 +3,7 @@ module github.com/splunk/otlpinput
 go 1.24.0
 
 require (
+	github.com/splunk/otlpinput/internal/exporter/stdoutexporter v0.0.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.135.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/headerssetterextension v0.135.0
 	github.com/stretchr/testify v1.11.1
@@ -97,3 +98,5 @@ require (
 	google.golang.org/protobuf v1.36.8 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+replace github.com/splunk/otlpinput/internal/exporter/stdoutexporter => ./internal/exporter/stdoutexporter

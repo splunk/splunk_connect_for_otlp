@@ -1,7 +1,4 @@
 
-.PHONY := build
-build: ta/otlpinput/linux_x86_64/bin/otlpinput ta/otlpinput/windows_x86_64/bin/otlpinput
-
 .PHONY := tgz
 tgz: build
 	tar --format ustar -C ta -czvf otlpinput.tgz otlpinput
@@ -15,6 +12,9 @@ ta/otlpinput/linux_x86_64/bin/otlpinput: $(shell find  **/*.go -type f)
 ta/otlpinput/windows_x86_64/bin/otlpinput: $(shell find  **/*.go -type f)
 	mkdir -p ../../ta/otlpinput/windows_x86_64/bin
 	GOOS=windows GOARCH=amd64 go build -C cmd/otlpinput -trimpath -o ../../ta/otlpinput/windows_x86_64/bin/otlpinput .
+
+.PHONY := build
+build: ta/otlpinput/linux_x86_64/bin/otlpinput ta/otlpinput/windows_x86_64/bin/otlpinput
 
 .PHONY := splunk
 splunk: otlpinput.tgz

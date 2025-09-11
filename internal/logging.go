@@ -11,7 +11,7 @@ import (
 func CreateLogger() (*zap.Logger, error) {
 	zapCfg := zap.NewProductionConfig()
 	zapCfg.Level = zap.NewAtomicLevelAt(zapcore.InfoLevel)
-	zapCfg.OutputPaths = []string{"stdout"}
-	zapCfg.ErrorOutputPaths = []string{"stdout"}
+	zapCfg.OutputPaths = []string{"stderr"}
+	zapCfg.ErrorOutputPaths = []string{"stderr"}
 	return zapCfg.Build()
 }

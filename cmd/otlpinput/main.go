@@ -7,13 +7,11 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/headerssetterextension"
 	"github.com/splunk/otlpinput/internal"
+	"github.com/splunk/otlpinput/internal/exporter/stdoutexporter"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config/configauth"
+	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/exporter"
-	"go.opentelemetry.io/collector/extension"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
@@ -21,7 +19,7 @@ import (
 	"go.opentelemetry.io/otel/trace/noop"
 	"log"
 	"os"
-	"time"
+	"runtime/debug"
 )
 
 func main() {
@@ -43,6 +41,13 @@ func main() {
 }
 
 func run() error {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Recovered from panic:", r)
+			fmt.Println("Stack trace:")
+			fmt.Println(string(debug.Stack()))
+		}
+	}()
 	config, err := internal.ReadFromStdin()
 	if err != nil {
 		return err
@@ -61,56 +66,32 @@ func run() error {
 		Resource:       pcommon.NewResource(),
 	}
 
-	extFactory := headerssetterextension.NewFactory()
-	extCfg := extFactory.CreateDefaultConfig().(*headerssetterextension.Config)
-	authorization := "Authorization"
-	extCfg.HeadersConfig = []headerssetterextension.HeaderConfig{
-		{
-			Action:      "upsert",
-			Key:         &authorization,
-			FromContext: &authorization,
-		},
-	}
-	headerExtension, err := extFactory.Create(context.Background(), extension.Settings{
-		ID:                component.MustNewID("headers_setter"),
-		TelemetrySettings: settings,
-	}, extCfg)
-	if err != nil {
-		return err
-	}
-
 	grpcPort, httpPort, listeningAddress := config.Extract()
-	f := splunkhecexporter.NewFactory()
-	hecCfg := f.CreateDefaultConfig().(*splunkhecexporter.Config)
-	hecCfg.Endpoint = "http://localhost:8088/services/collector/event"
-	hecCfg.Timeout = 10 * time.Second
-	hecCfg.BackOffConfig.Enabled = false
-	hecCfg.QueueSettings.Enabled = false
-	hecCfg.Auth = &configauth.Authentication{AuthenticatorID: component.MustNewID("headers_setter")}
+	stdoutCfg := stdoutexporter.NewFactory().CreateDefaultConfig().(*stdoutexporter.Config)
+	f := stdoutexporter.NewFactory()
 	ctx := context.Background()
 	telemetrySettings := exporter.Settings{
 		TelemetrySettings: settings,
-		ID:                component.MustNewID("splunk_hec"),
+		ID:                component.MustNewID("stdout"),
 	}
-	le, err := f.CreateLogs(ctx, telemetrySettings, hecCfg)
+	le, err := f.CreateLogs(ctx, telemetrySettings, stdoutCfg)
 	if err != nil {
 		return err
 	}
-	me, err := f.CreateMetrics(ctx, telemetrySettings, hecCfg)
+	me, err := f.CreateMetrics(ctx, telemetrySettings, stdoutCfg)
 	if err != nil {
 		return err
 	}
-	te, err := f.CreateTraces(ctx, telemetrySettings, hecCfg)
+	te, err := f.CreateTraces(ctx, telemetrySettings, stdoutCfg)
 	if err != nil {
 		return err
 	}
+	logger.Info("Configured exporter")
 
 	rf := otlpreceiver.NewFactory()
 	cfg := rf.CreateDefaultConfig().(*otlpreceiver.Config)
-	cfg.GRPC.NetAddr.Endpoint = fmt.Sprintf("%s:%d", listeningAddress, grpcPort)
-	cfg.HTTP.ServerConfig.Endpoint = fmt.Sprintf("%s:%d", listeningAddress, httpPort)
-	cfg.GRPC.IncludeMetadata = true
-	cfg.HTTP.ServerConfig.IncludeMetadata = true
+	_ = cfg.GRPC.Unmarshal(confmap.NewFromStringMap(map[string]any{"endpoint": fmt.Sprintf("%s:%d", listeningAddress, grpcPort)}))
+	_ = cfg.HTTP.Unmarshal(confmap.NewFromStringMap(map[string]any{"endpoint": fmt.Sprintf("%s:%d", listeningAddress, httpPort)}))
 
 	if _, err = rf.CreateLogs(ctx, receiver.Settings{
 		TelemetrySettings: settings,
@@ -132,11 +113,11 @@ func run() error {
 		return err
 	}
 
+	logger.Info("Configured OTLP receiver")
+
 	h := &internal.TTYHost{
-		ErrStatus: make(chan error, 1),
-		Extensions: map[component.ID]component.Component{
-			component.MustNewID("headers_setter"): headerExtension,
-		},
+		ErrStatus:  make(chan error, 1),
+		Extensions: map[component.ID]component.Component{},
 	}
 	h.Start()
 

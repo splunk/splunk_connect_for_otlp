@@ -35,7 +35,7 @@ func TestParseInput(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, "otlpinput://specialmind", config.Configuration.Stanza.Name)
-	require.Equal(t, "4318", config.Configuration.Stanza.Params[3].Value)
+	require.Equal(t, "main", config.Configuration.Stanza.Params[3].Value)
 
 	grpcPort, httpPort, listeningAddress := config.Extract()
 

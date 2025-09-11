@@ -1,7 +1,6 @@
-# OTLP Input Technical Addon
+# Splunk Connect for OTLP
 
-This repository contains a technical addon that exposes a OTLP endpoint for consumption of logs,
-rendered as log lines to be ingested by Splunk Platform.
+This repository contains a technical addon that exposes a OTLP endpoint for consumption of logs, traces and metrics.
 
 ## Configuration
 
@@ -9,12 +8,36 @@ The input is configured as a data input in the Splunk Data Input settings.
 
 You can set:
 * The gRPC port and HTTP ports the OTLP receiver will listen on
-* The listening address on which the OTLP input
+* The network interface address on which the OTLP input will listen.
+
+## Sending OTLP
+
+When sending OTLP data, this input interprets resource attributes to create HEC equivalents.
+
+This table shows the resource attributes mapping:
+
+| Resource attribute    | HEC event field |
+|-----------------------|-----------------|
+| com.splunk.index      | index           |
+| com.splunk.sourcetype | sourcetype      |
+| com.splunk.source     | source          |
+| host.name             | host            |
+
+OpenTelemetry protocol representation of a log record contains additional fields. The table below shows the mapping of those fields to HEC event indexed fields:
+
+| Log record field | HEC event indexed field    |
+|------------------|----------------------------|
+| Severity text    | `otel.log.severity.text`   |
+| Severity number  | `otel.log.severity.number` |
+ 
+All other resource and individual log record attributes are mapped to indexed fields.
+
+This mapping follows the OpenTelemetry specification.
 
 ## Build
 
 Prerequisites:
-* Go 1.23
+* Go 1.24
 * Make
 
 Run:
@@ -30,7 +53,7 @@ The archive is created as otlpinput.tgz.
 
 You can generate a payload using telemetrygen:
 ```shell
-$> telemetrygen metrics --otlp-insecure --otlp-endpoint 0.0.0.0:4317 --metrics 100 --workers 10 --otlp-header Authorization=\"Splunk\ 000000-0000-00000-0000000000\"
-$> telemetrygen logs --otlp-insecure --otlp-endpoint 0.0.0.0:4317 --logs 100 --workers 10 --otlp-header Authorization=\"Splunk\ 000000-0000-00000-0000000000\"
-$> telemetrygen traces --otlp-insecure --otlp-endpoint 0.0.0.0:4317 --traces 100 --workers 10 --otlp-header Authorization=\"Splunk\ 000000-0000-00000-0000000000\"
+$> telemetrygen metrics --otlp-insecure --otlp-endpoint 0.0.0.0:4317 --metrics 100 --workers 10
+$> telemetrygen logs --otlp-insecure --otlp-endpoint 0.0.0.0:4317 --logs 100 --workers 10
+$> telemetrygen traces --otlp-insecure --otlp-endpoint 0.0.0.0:4317 --traces 100 --workers 10
 ```

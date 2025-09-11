@@ -1,3 +1,4 @@
+GOCMD?=go
 
 .PHONY := tgz
 tgz: build
@@ -31,3 +32,10 @@ splunk: otlpinput.tgz
 .PHONY := test
 test:
 	go test -v ./...
+
+.PHONY: gotidy
+gotidy:
+	@for mod in $$(find . -name go.mod | xargs dirname); do \
+		echo "Tidying $$mod"; \
+		(cd $$mod && rm -rf go.sum && $(GOCMD) mod tidy -compat=1.24.0 && $(GOCMD) get toolchain@none) || exit $?; \
+	done

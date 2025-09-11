@@ -113,7 +113,7 @@ func (s *stdoutExporter) ConsumeMetrics(_ context.Context, md pmetric.Metrics) e
 			sm := rm.ScopeMetrics().At(j)
 			for k := 0; k < sm.Metrics().Len(); k++ {
 				m := sm.Metrics().At(k)
-				for result := range internal.MapMetricToSplunkEvent(r, m, s.TelemetrySettings.Logger) {
+				for _, result := range internal.MapMetricToSplunkEvent(r, m, s.TelemetrySettings.Logger) {
 					b, err := json.Marshal(result)
 					if err != nil {
 						errs = append(errs, err)

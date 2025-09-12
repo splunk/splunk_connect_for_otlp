@@ -51,9 +51,41 @@ The archive is created as otlpinput.tgz.
 
 ## Testing
 
-You can generate a payload using telemetrygen:
+### Run a Splunk instance locally
+
+You can run a local Splunk instance with:
+```shell
+make splunk
+```
+
+Log in with `admin`/`changeme`.
+
+Install the application by going to Apps > Manage Apps > Install application from file.
+
+### Send via collector
+
+See the [./example] folder for a collector configuration.
+
+### Telemetrygen
+
+You can generate a payload using [telemetrygen](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/cmd/telemetrygen.
+
+Install telemetrygen with:
+```shell
+go install github.com/open-telemetry/opentelemetry-collector-contrib/cmd/telemetrygen@latest
+```
+
+Try running telemetrygen with:
+
 ```shell
 $> telemetrygen metrics --otlp-insecure --otlp-endpoint 0.0.0.0:4317 --metrics 100 --workers 10
 $> telemetrygen logs --otlp-insecure --otlp-endpoint 0.0.0.0:4317 --logs 100 --workers 10
 $> telemetrygen traces --otlp-insecure --otlp-endpoint 0.0.0.0:4317 --traces 100 --workers 10
+```
+
+To try sending data to different indexes, add a resource attribute with the `--otlp-attributes` parameter.
+
+Example to send to the `foo` metric index:
+```shell
+$> telemetrygen metrics --otlp-insecure --otlp-endpoint 0.0.0.0:4317 --metrics 100 --workers 10 --otlp-attributes com.splunk.index=\"foo\"
 ```

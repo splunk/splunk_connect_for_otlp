@@ -1,0 +1,19 @@
+version: "3"
+services:
+  # Sample bash script producing logs.
+  logging:
+    image: bash:latest
+    container_name: logging
+    command: 'bash -c "while(true) do echo \"$$(date) new message\" >> /output/file.log ; sleep 1; done"'
+    depends_on:
+      - otelcollector
+    volumes:
+      - ./output:/output
+  # OpenTelemetry Collector
+  otelcollector:
+    image:  quay.io/signalfx/splunk-otel-collector:latest
+    container_name: otelcollector
+    command: ["--config=/etc/otel-collector-config.yml"]
+    volumes:
+      - ./otel-collector-config.yml:/etc/otel-collector-config.yml
+      - ./output:/output

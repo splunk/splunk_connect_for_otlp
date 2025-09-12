@@ -1,0 +1,17 @@
+receivers:
+    filelog:
+      include: [ /output/file.log ]
+
+exporters:
+    otlphttp:
+      endpoint: "https://splunk:8088/services/collector" # replace splunk with the host name
+
+processors:
+    batch:
+
+service:
+    pipelines:
+      logs:
+        receivers: [filelog]
+        processors: [batch]
+        exporters: [otlphttp]

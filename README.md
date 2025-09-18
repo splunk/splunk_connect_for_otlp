@@ -64,7 +64,7 @@ Install the application by going to Apps > Manage Apps > Install application fro
 
 ### Send via collector
 
-See the [./example] folder for a collector configuration.
+See the [example folder](./example) for a collector configuration.
 
 ### Telemetrygen
 

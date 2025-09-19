@@ -89,3 +89,8 @@ Example to send to the `foo` metric index:
 ```shell
 $> telemetrygen metrics --otlp-insecure --otlp-endpoint 0.0.0.0:4317 --metrics 100 --workers 10 --otlp-attributes com.splunk.index=\"foo\"
 ```
+
+# Binary File Declaration
+The following binaries are written in Go present in the source repository:
+- linux_x86_64/bin/otlpinput
+- windows_x86_64/bin/otlpinput

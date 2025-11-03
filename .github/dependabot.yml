@@ -1,0 +1,18 @@
+version: 2
+updates:
+  - package-ecosystem: "gomod"
+    directories:
+      - "**/*"
+    schedule:
+      interval: "weekly"
+    groups:
+      otelcol:
+        patterns:
+          - "go.opentelemetry.io/collector*"
+      otel:
+        patterns:
+          - "go.opentelemetry.io/otel*"
+          - "go.opentelemetry.io/contrib*"
+      testify:
+        patterns:
+          - "github.com/stretchr/testify"

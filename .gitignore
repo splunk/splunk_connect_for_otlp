@@ -1,3 +1,10 @@
 otlpinput.tgz
 ta/otlpinput/linux_x86_64/bin/otlpinput
 ta/otlpinput/windows_x86_64/bin/otlpinput
+
+# GoLand IDEA
+/.idea/
+*.iml
+
+# Mac system files
+.DS_Store

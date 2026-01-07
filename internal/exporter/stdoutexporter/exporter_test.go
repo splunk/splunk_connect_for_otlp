@@ -8,6 +8,8 @@ import (
 	"encoding/hex"
 	"fmt"
 	"go.opentelemetry.io/collector/component/componenttest"
+	"io"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
@@ -184,10 +186,10 @@ func prepareTracesData(index, source, sourcetype string) ptrace.Traces {
 
 	traces := ptrace.NewTraces()
 	rs := traces.ResourceSpans().AppendEmpty()
-	rs.Resource().Attributes().PutStr("com.splunk.source", source)
+	rs.Resource().Attributes().PutStr(testutils.DefaultSourceLabel, source)
 	rs.Resource().Attributes().PutStr("host.name", "myhost")
-	rs.Resource().Attributes().PutStr("com.splunk.sourcetype", sourcetype)
-	rs.Resource().Attributes().PutStr("com.splunk.index", index)
+	rs.Resource().Attributes().PutStr(testutils.DefaultSourceTypeLabel, sourcetype)
+	rs.Resource().Attributes().PutStr(testutils.DefaultIndexLabel, index)
 	ils := rs.ScopeSpans().AppendEmpty()
 	initSpan("myspan", ts, ils.Spans().AppendEmpty())
 	return traces
@@ -215,6 +217,17 @@ type testCfg struct {
 	telType   telemetryType
 }
 
+func captureOutput(f func(context.Context, plog.Logs) error, ctx context.Context, logs plog.Logs) (string, error) {
+	orig := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+	err := f(ctx, logs)
+	os.Stdout = orig
+	w.Close()
+	out, _ := io.ReadAll(r)
+	return string(out), err
+}
+
 func logsTest(t *testing.T, test testCfg) {
 	settings := exportertest.NewNopSettings(exportertest.NopType)
 	var logs plog.Logs
@@ -228,7 +241,9 @@ func logsTest(t *testing.T, test testCfg) {
 	require.NoError(t, err)
 	err = exporter.Start(t.Context(), componenttest.NewNopHost())
 	require.NoError(t, err)
-	err = exporter.ConsumeLogs(t.Context(), logs)
+	out, err := captureOutput(exporter.ConsumeLogs, t.Context(), logs)
+	require.NotEmpty(t, out)
+	t.Log("Captured output:", out)
 	require.NoError(t, err, "Must not error while sending Logs data")
 	waitForEventToBeIndexed()
 

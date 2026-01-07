@@ -1,24 +1,74 @@
 package testutils
 
+import (
+	"fmt"
+	"os"
+
+	"gopkg.in/yaml.v3"
+)
+
 // Constants for Splunk components.
 const (
-	DefaultSourceTypeLabel     = "com.splunk.sourcetype"
-	DefaultSourceLabel         = "com.splunk.source"
-	DefaultIndexLabel          = "com.splunk.index"
-	DefaultNameLabel           = "otel.log.name"
-	DefaultSeverityTextLabel   = "otel.log.severity.text"
-	DefaultSeverityNumberLabel = "otel.log.severity.number"
-	HECTokenHeader             = "Splunk"
-	HTTPSplunkChannelHeader    = "X-Splunk-Request-Channel"
-
-	HecTokenLabel = "com.splunk.hec.access_token" // #nosec
-	// HecEventMetricType is the type of HEC event. Set to metric, as per https://docs.splunk.com/Documentation/Splunk/8.0.3/Metrics/GetMetricsInOther.
-	HecEventMetricType = "metric"
-	DefaultRawPath     = "/services/collector/raw"
-	DefaultHealthPath  = "/services/collector/health"
-	DefaultAckPath     = "/services/collector/ack"
-
-	// https://docs.splunk.com/Documentation/Splunk/9.2.1/Metrics/Overview#What_is_a_metric_data_point.3F
-	// metric name can contain letters, numbers, underscore, dot or colon. cannot start with number or underscore, or contain metric_name
-	metricNamePattern = `^metric_name:([A-Za-z.:][A-Za-z0-9_.:\\-]*)$`
+	DefaultSourceTypeLabel = "com.splunk.sourcetype"
+	DefaultSourceLabel     = "com.splunk.source"
+	DefaultIndexLabel      = "com.splunk.index"
+	DefaultNameLabel       = "otel.log.name"
 )
+
+var configFilePath = "./testdata/test_config.yaml"
+
+type IntegrationTestsConfig struct {
+	Host           string `yaml:"HOST"`
+	User           string `yaml:"USER"`
+	Password       string `yaml:"PASSWORD"`
+	UIPort         string `yaml:"UI_PORT"`
+	HecPort        string `yaml:"HEC_PORT"`
+	ManagementPort string `yaml:"MANAGEMENT_PORT"`
+	EventIndex     string `yaml:"EVENT_INDEX"`
+	MetricIndex    string `yaml:"METRIC_INDEX"`
+	TraceIndex     string `yaml:"TRACE_INDEX"`
+	HecToken       string `yaml:"HEC_TOKEN"`
+	SplunkImage    string `yaml:"SPLUNK_IMAGE"`
+}
+
+func GetConfigVariable(key string) string {
+	// Read YAML file
+	fileData, err := os.ReadFile(configFilePath)
+	if err != nil {
+		fmt.Println("Error reading file:", err)
+	}
+
+	var config IntegrationTestsConfig
+	err = yaml.Unmarshal(fileData, &config)
+	if err != nil {
+		fmt.Println("Error decoding YAML:", err)
+	}
+
+	switch key {
+	case "HOST":
+		return config.Host
+	case "USER":
+		return config.User
+	case "PASSWORD":
+		return config.Password
+	case "UI_PORT":
+		return config.UIPort
+	case "HEC_PORT":
+		return config.HecPort
+	case "MANAGEMENT_PORT":
+		return config.ManagementPort
+	case "EVENT_INDEX":
+		return config.EventIndex
+	case "METRIC_INDEX":
+		return config.MetricIndex
+	case "TRACE_INDEX":
+		return config.TraceIndex
+	case "HEC_TOKEN":
+		return config.HecToken
+	case "SPLUNK_IMAGE":
+		return config.SplunkImage
+	default:
+		fmt.Println("Invalid field")
+		return "None"
+	}
+}

@@ -238,10 +238,6 @@ func TestSplunkHecExporter(t *testing.T) {
 	}
 }
 
-func waitForEventToBeIndexed() {
-	time.Sleep(3 * time.Second)
-}
-
 func initSpan(name string, ts pcommon.Timestamp, span ptrace.Span) {
 	span.Attributes().PutStr("foo", "bar")
 	span.SetName(name)

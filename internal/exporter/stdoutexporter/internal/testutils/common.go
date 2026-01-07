@@ -22,14 +22,3 @@ const (
 	// metric name can contain letters, numbers, underscore, dot or colon. cannot start with number or underscore, or contain metric_name
 	metricNamePattern = `^metric_name:([A-Za-z.:][A-Za-z0-9_.:\\-]*)$`
 )
-
-func BuildHTTPHeaders() map[string]string {
-	return map[string]string{
-		"Connection":           "keep-alive",
-		"Content-Type":         "application/json",
-		"User-Agent":           "SplunkAppName/vx.x.x",
-		"Authorization":        HECTokenHeader + " " + "fake-token",
-		"__splunk_app_name":    "SplunkAppName",
-		"__splunk_app_version": "SplunkAppVersion",
-	}
-}

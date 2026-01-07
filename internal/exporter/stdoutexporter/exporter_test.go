@@ -291,17 +291,46 @@ func TestSplunkHecExporter(t *testing.T) {
 
 	tests := []testCfg{
 		{
-			name:      "Events to Splunk - logs",
+			name: "Events to Splunk",
+			config: &cfg{
+				event:      "test log",
+				index:      "main",
+				source:     "otel",
+				sourcetype: "st-otel",
+			},
 			startTime: "-3h@h",
 			telType:   logsType,
 		},
 		{
-			name:      "Events to Splunk - metrics",
+			name: "Events to Splunk - Non default index",
+			config: &cfg{
+				event:      "This is my new event! And some number 101",
+				index:      testutils.GetConfigVariable("EVENT_INDEX"),
+				source:     "otel-source",
+				sourcetype: "sck-otel-st",
+			},
+			startTime: "-1m@m",
+			telType:   logsType,
+		},
+		{
+			name: "Events to Splunk - metrics",
+			config: &cfg{
+				event:      "test.metric",
+				index:      testutils.GetConfigVariable("METRIC_INDEX"),
+				source:     "otel",
+				sourcetype: "st-otel",
+			},
 			startTime: "",
 			telType:   metricsType,
 		},
 		{
-			name:      "Events to Splunk - traces",
+			name: "Events to Splunk - traces",
+			config: &cfg{
+				event:      "",
+				index:      testutils.GetConfigVariable("TRACE_INDEX"),
+				source:     "trace-source",
+				sourcetype: "trace-sourcetype",
+			},
 			startTime: "-1m@m",
 			telType:   tracesType,
 		},

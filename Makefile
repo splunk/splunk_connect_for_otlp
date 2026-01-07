@@ -1,5 +1,12 @@
 GOCMD?=go
 
+DEFAULT_VERSION=$(shell git describe --match "v[0-9]*" HEAD)
+VERSION?=${DEFAULT_VERSION}
+
+# Currently integration tests are flaky when run in parallel due to internal metric and config server conflicts
+GOTEST_SERIAL=go test -p 1
+BUILD_INFO_TESTS=-ldflags "-X latest.Version=$(VERSION)"
+
 .PHONY := tgz
 tgz: build
 	tar --format ustar -C ta -czvf otlpinput.tgz otlpinput
@@ -39,3 +46,7 @@ gotidy:
 		echo "Tidying $$mod"; \
 		(cd $$mod && rm -rf go.sum && $(GOCMD) mod tidy -compat=1.24.0 && $(GOCMD) get toolchain@none) || exit $?; \
 	done
+
+.PHONY: integration-test
+integration-test:
+	@set -e; cd internal/exporter/stdoutexporter && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) -v -timeout 5m -count 1 ./...

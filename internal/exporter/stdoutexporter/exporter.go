@@ -7,7 +7,8 @@ import (
 	"context"
 	"errors"
 	"github.com/goccy/go-json"
-	"github.com/splunk/otlpinput/internal/exporter/stdoutexporter/internal"
+	translator "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/splunk"
+
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/exporter"
@@ -27,7 +28,7 @@ func newLogsExporter(ctx context.Context, set exporter.Settings, cfg component.C
 		exporterhelper.WithCapabilities(consumer.Capabilities{
 			MutatesData: false,
 		}),
-		exporterhelper.WithQueueBatch(oCfg.QueueBatchConfig, exporterhelper.NewLogsQueueBatchSettings()))
+		exporterhelper.WithQueue(oCfg.QueueBatchConfig))
 }
 
 func newTracesExporter(ctx context.Context, set exporter.Settings, cfg component.Config) (exporter.Traces, error) {
@@ -39,7 +40,7 @@ func newTracesExporter(ctx context.Context, set exporter.Settings, cfg component
 		exporterhelper.WithCapabilities(consumer.Capabilities{
 			MutatesData: false,
 		}),
-		exporterhelper.WithQueueBatch(oCfg.QueueBatchConfig, exporterhelper.NewTracesQueueBatchSettings()))
+		exporterhelper.WithQueue(oCfg.QueueBatchConfig))
 }
 
 func newMetricsExporter(ctx context.Context, set exporter.Settings, cfg component.Config) (exporter.Metrics, error) {
@@ -51,7 +52,7 @@ func newMetricsExporter(ctx context.Context, set exporter.Settings, cfg componen
 		exporterhelper.WithCapabilities(consumer.Capabilities{
 			MutatesData: false,
 		}),
-		exporterhelper.WithQueueBatch(oCfg.QueueBatchConfig, exporterhelper.NewMetricsQueueBatchSettings()))
+		exporterhelper.WithQueue(oCfg.QueueBatchConfig))
 }
 
 type stdoutExporter struct {
@@ -59,6 +60,9 @@ type stdoutExporter struct {
 }
 
 func (s *stdoutExporter) ConsumeLogs(_ context.Context, ld plog.Logs) error {
+	toOtelAttrs := translator.DefaultHecToOtelAttrs()
+	toHecAttrs := translator.DefaultOtelToHecFields()
+
 	var errs []error
 	for i := 0; i < ld.ResourceLogs().Len(); i++ {
 		rl := ld.ResourceLogs().At(i)
@@ -67,7 +71,7 @@ func (s *stdoutExporter) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 			sl := rl.ScopeLogs().At(j)
 			for k := 0; k < sl.LogRecords().Len(); k++ {
 				logRecord := sl.LogRecords().At(k)
-				b, err := json.Marshal(internal.MapLogRecordToSplunkEvent(r, logRecord))
+				b, err := json.Marshal(translator.LogToSplunkEvent(r, logRecord, toOtelAttrs, toHecAttrs, "", "", ""))
 				if err != nil {
 					errs = append(errs, err)
 				} else {
@@ -82,6 +86,8 @@ func (s *stdoutExporter) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 }
 
 func (s *stdoutExporter) ConsumeTraces(_ context.Context, td ptrace.Traces) error {
+	toOtelAttrs := translator.DefaultHecToOtelAttrs()
+
 	var errs []error
 	for i := 0; i < td.ResourceSpans().Len(); i++ {
 		rs := td.ResourceSpans().At(i)
@@ -90,7 +96,7 @@ func (s *stdoutExporter) ConsumeTraces(_ context.Context, td ptrace.Traces) erro
 			ss := rs.ScopeSpans().At(j)
 			for k := 0; k < ss.Spans().Len(); k++ {
 				s := ss.Spans().At(k)
-				b, err := json.Marshal(internal.MapSpanToSplunkEvent(r, s))
+				b, err := json.Marshal(translator.SpanToSplunkEvent(r, s, toOtelAttrs, "", "", ""))
 				if err != nil {
 					errs = append(errs, err)
 				} else {
@@ -105,6 +111,8 @@ func (s *stdoutExporter) ConsumeTraces(_ context.Context, td ptrace.Traces) erro
 }
 
 func (s *stdoutExporter) ConsumeMetrics(_ context.Context, md pmetric.Metrics) error {
+	toOtelAttrs := translator.DefaultHecToOtelAttrs()
+
 	var errs []error
 	for i := 0; i < md.ResourceMetrics().Len(); i++ {
 		rm := md.ResourceMetrics().At(i)
@@ -113,7 +121,7 @@ func (s *stdoutExporter) ConsumeMetrics(_ context.Context, md pmetric.Metrics) e
 			sm := rm.ScopeMetrics().At(j)
 			for k := 0; k < sm.Metrics().Len(); k++ {
 				m := sm.Metrics().At(k)
-				for _, result := range internal.MapMetricToSplunkEvent(r, m, s.TelemetrySettings.Logger) {
+				for _, result := range translator.MetricToSplunkEvent(r, m, s.TelemetrySettings.Logger, toOtelAttrs, "", "", "") {
 					b, err := json.Marshal(result)
 					if err != nil {
 						errs = append(errs, err)

@@ -224,8 +224,7 @@ func logsTest(t *testing.T, test testCfg) {
 		logs = prepareLogs()
 	}
 
-	factory := NewFactory()
-	exporter, err := factory.CreateLogs(t.Context(), settings, createDefaultConfig())
+	exporter, err := newLogsExporter(t.Context(), settings, createDefaultConfig())
 	require.NoError(t, err)
 	err = exporter.Start(t.Context(), componenttest.NewNopHost())
 	require.NoError(t, err)
@@ -248,8 +247,7 @@ func metricsTest(t *testing.T, test testCfg) {
 	settings := exportertest.NewNopSettings(exportertest.NopType)
 	metricData := prepareMetricsData(test.config.event)
 
-	factory := NewFactory()
-	exporter, err := factory.CreateMetrics(t.Context(), settings, createDefaultConfig())
+	exporter, err := newMetricsExporter(t.Context(), settings, createDefaultConfig())
 	require.NoError(t, err)
 	err = exporter.Start(t.Context(), componenttest.NewNopHost())
 	require.NoError(t, err)
@@ -265,8 +263,7 @@ func tracesTest(t *testing.T, test testCfg) {
 	settings := exportertest.NewNopSettings(exportertest.NopType)
 	tracesData := prepareTracesData(test.config.index, test.config.source, test.config.sourcetype)
 
-	factory := NewFactory()
-	exporter, err := factory.CreateTraces(t.Context(), settings, createDefaultConfig())
+	exporter, err := newTracesExporter(t.Context(), settings, createDefaultConfig())
 	require.NoError(t, err)
 	err = exporter.Start(t.Context(), componenttest.NewNopHost())
 	require.NoError(t, err)

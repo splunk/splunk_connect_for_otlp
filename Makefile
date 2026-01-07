@@ -1,11 +1,9 @@
 GOCMD?=go
 
-DEFAULT_VERSION=$(shell git describe --match "v[0-9]*" HEAD)
-VERSION?=${DEFAULT_VERSION}
+FIND_MOD_ARGS=-type f -name "go.mod"  -not -path "./packaging/technical-addon/*"
+TO_MOD_DIR=dirname {} \; | sort | egrep  '^./'
 
-# Currently integration tests are flaky when run in parallel due to internal metric and config server conflicts
-GOTEST_SERIAL=go test -p 1
-BUILD_INFO_TESTS=-ldflags "-X latest.Version=$(VERSION)"
+ALL_MODS := $(shell find . $(FIND_MOD_ARGS) -exec $(TO_MOD_DIR)) $(PWD)
 
 .PHONY := tgz
 tgz: build
@@ -36,9 +34,20 @@ splunk: otlpinput.tgz
 		-p 8000:8000 \
 		splunk/splunk:9.3
 
-.PHONY := test
-test:
-	go test -v ./...
+# Define a delegation target for each module
+.PHONY: $(ALL_MODS)
+$(ALL_MODS):
+	@echo "Running target '$(TARGET)' in module '$@'"
+	$(MAKE) --no-print-directory -C $@ $(TARGET)
+
+# Triggers each module's delegation target
+.PHONY: for-all-target
+for-all-target: $(ALL_MODS)
+
+.PHONY: test-all
+test-all:
+	$(MAKE) for-all-target TARGET="test"
+	$(MAKE) test
 
 .PHONY: gotidy
 gotidy:
@@ -46,7 +55,3 @@ gotidy:
 		echo "Tidying $$mod"; \
 		(cd $$mod && rm -rf go.sum && $(GOCMD) mod tidy -compat=1.24.0 && $(GOCMD) get toolchain@none) || exit $?; \
 	done
-
-.PHONY: integration-test
-integration-test:
-	@set -e; cd internal/exporter/stdoutexporter && $(GOTEST_SERIAL) $(BUILD_INFO_TESTS) -v -timeout 5m -count 1 ./...

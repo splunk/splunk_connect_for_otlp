@@ -71,7 +71,11 @@ func (s *stdoutExporter) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 			sl := rl.ScopeLogs().At(j)
 			for k := 0; k < sl.LogRecords().Len(); k++ {
 				logRecord := sl.LogRecords().At(k)
-				b, err := json.Marshal(translator.LogToSplunkEvent(r, logRecord, toOtelAttrs, toHecAttrs, "", "", ""))
+				event := translator.LogToSplunkEvent(r, logRecord, toOtelAttrs, toHecAttrs, "", "", "")
+				if event == nil {
+					continue
+				}
+				b, err := json.Marshal(&event)
 				if err != nil {
 					errs = append(errs, err)
 				} else {

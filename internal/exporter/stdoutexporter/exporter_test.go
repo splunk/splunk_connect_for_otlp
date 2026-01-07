@@ -6,137 +6,21 @@ package stdoutexporter
 import (
 	"context"
 	"encoding/hex"
-	"fmt"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"io"
 	"os"
-	"os/exec"
-	"path/filepath"
-	"strconv"
 	"testing"
 	"time"
 
+	"github.com/splunk/otlpinput/internal/exporter/stdoutexporter/internal/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/wait"
 	"go.opentelemetry.io/collector/exporter/exportertest"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/pdata/ptrace"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zaptest"
-
-	"github.com/splunk/otlpinput/internal/exporter/stdoutexporter/internal/testutils"
 )
-
-type splunkContainerConfig struct {
-	conCtx    context.Context
-	container testcontainers.Container
-}
-
-func setup() splunkContainerConfig {
-	// Perform setup operations here
-	cfg := startSplunk()
-	return cfg
-}
-
-func teardown(cfg splunkContainerConfig) {
-	// Perform teardown operations here
-	fmt.Println("Tearing down...")
-	// Stop and remove the container
-	fmt.Println("Stopping container")
-	err := cfg.container.Terminate(cfg.conCtx)
-	if err != nil {
-		fmt.Printf("Error while terminating container")
-		panic(err)
-	}
-	// Remove docker image after tests
-	splunkImage := testutils.GetConfigVariable("SPLUNK_IMAGE")
-	cmd := exec.Command("docker", "rmi", splunkImage)
-
-	// Execute command
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		fmt.Printf("Error removing Docker image: %v\n", err)
-	}
-	fmt.Printf("Removed Docker image: %s\n", splunkImage)
-	fmt.Printf("Command output:\n%s\n", output)
-}
-
-func startSplunk() splunkContainerConfig {
-	logger, err := zap.NewProduction()
-	if err != nil {
-		panic(err)
-	}
-
-	conContext := context.Background()
-
-	// Create a new container
-	splunkImage := testutils.GetConfigVariable("SPLUNK_IMAGE")
-	req := testcontainers.ContainerRequest{
-		Image:        splunkImage,
-		ExposedPorts: []string{"8000/tcp", "8088/tcp", "8089/tcp"},
-		Env: map[string]string{
-			"SPLUNK_START_ARGS": "--accept-license",
-			"SPLUNK_HEC_TOKEN":  testutils.GetConfigVariable("HEC_TOKEN"),
-			"SPLUNK_PASSWORD":   testutils.GetConfigVariable("PASSWORD"),
-		},
-		Files: []testcontainers.ContainerFile{
-			{
-				HostFilePath:      filepath.Join("testdata", "splunk.yaml"),
-				ContainerFilePath: "/tmp/defaults/default.yml",
-				FileMode:          0o644,
-			},
-		},
-		WaitingFor: wait.ForHealthCheck().WithStartupTimeout(5 * time.Minute),
-	}
-
-	container, err := testcontainers.GenericContainer(conContext, testcontainers.GenericContainerRequest{
-		ContainerRequest: req,
-		Started:          true,
-	})
-	if err != nil {
-		logger.Info("Error while creating container")
-		panic(err)
-	}
-
-	// Get the container host and port
-	uiPort, err := container.MappedPort(conContext, "8000")
-	if err != nil {
-		logger.Info("Error while getting port")
-		panic(err)
-	}
-
-	hecPort, err := container.MappedPort(conContext, "8088")
-	if err != nil {
-		logger.Info("Error while getting port")
-		panic(err)
-	}
-	managementPort, err := container.MappedPort(conContext, "8089")
-	if err != nil {
-		logger.Info("Error while getting port")
-		panic(err)
-	}
-	host, err := container.Host(conContext)
-	if err != nil {
-		logger.Info("Error while getting host")
-		panic(err)
-	}
-
-	// Use the container's host and port for your tests
-	logger.Info("Splunk running at:", zap.String("host", host), zap.Int("uiPort", uiPort.Int()), zap.Int("hecPort", hecPort.Int()), zap.Int("managementPort", managementPort.Int()))
-	testutils.SetConfigVariable("HOST", host)
-	testutils.SetConfigVariable("UI_PORT", strconv.Itoa(uiPort.Int()))
-	testutils.SetConfigVariable("HEC_PORT", strconv.Itoa(hecPort.Int()))
-	testutils.SetConfigVariable("MANAGEMENT_PORT", strconv.Itoa(managementPort.Int()))
-	cfg := splunkContainerConfig{
-		conCtx:    conContext,
-		container: container,
-	}
-	return cfg
-}
 
 func prepareLogs() plog.Logs {
 	logs := plog.NewLogs()
@@ -211,17 +95,19 @@ var (
 )
 
 type testCfg struct {
-	name      string
-	config    *cfg
-	startTime string
-	telType   telemetryType
+	name                   string
+	config                 *cfg
+	startTime              string
+	telType                telemetryType
+	expectedResultFilePath string
 }
 
-func captureOutput(f func(context.Context, plog.Logs) error, ctx context.Context, logs plog.Logs) (string, error) {
+func captureOutput[telemetry any](f func(context.Context, telemetry) error, ctx context.Context, tel telemetry) (string, error) {
 	orig := os.Stdout
 	r, w, _ := os.Pipe()
 	os.Stdout = w
-	err := f(ctx, logs)
+	err := f(ctx, tel)
+	time.Sleep(1 * time.Second)
 	os.Stdout = orig
 	w.Close()
 	out, _ := io.ReadAll(r)
@@ -242,20 +128,12 @@ func logsTest(t *testing.T, test testCfg) {
 	err = exporter.Start(t.Context(), componenttest.NewNopHost())
 	require.NoError(t, err)
 	out, err := captureOutput(exporter.ConsumeLogs, t.Context(), logs)
-	require.NotEmpty(t, out)
-	t.Log("Captured output:", out)
-	require.NoError(t, err, "Must not error while sending Logs data")
-	waitForEventToBeIndexed()
 
-	events := testutils.CheckEventsFromSplunk("index="+test.config.index+" *", test.startTime)
-	assert.Len(t, events, 1)
-	// check events fields
-	data, ok := events[0].(map[string]any)
-	assert.True(t, ok, "Invalid event format")
-	assert.Equal(t, test.config.event, data["_raw"].(string))
-	assert.Equal(t, test.config.index, data["index"].(string))
-	assert.Equal(t, test.config.source, data["source"].(string))
-	assert.Equal(t, test.config.sourcetype, data["sourcetype"].(string))
+	require.NotEmpty(t, out)
+	require.NoError(t, err, "Must not error while sending log data")
+	expectedJson, err := os.ReadFile(test.expectedResultFilePath)
+	require.NoError(t, err)
+	require.Equal(t, out, string(expectedJson))
 }
 
 func metricsTest(t *testing.T, test testCfg) {
@@ -266,12 +144,14 @@ func metricsTest(t *testing.T, test testCfg) {
 	require.NoError(t, err)
 	err = exporter.Start(t.Context(), componenttest.NewNopHost())
 	require.NoError(t, err)
-	err = exporter.ConsumeMetrics(t.Context(), metricData)
-	require.NoError(t, err, "Must not error while sending Metrics data")
-	waitForEventToBeIndexed()
 
-	events := testutils.CheckMetricsFromSplunk(test.config.index, test.config.event)
-	assert.Len(t, events, 1, "Events length is less than 1. No metrics found")
+	out, err := captureOutput(exporter.ConsumeMetrics, t.Context(), metricData)
+	require.NotEmpty(t, out)
+	require.NoError(t, err, "Must not error while sending metric data")
+	expectedJson, err := os.ReadFile(test.expectedResultFilePath)
+	require.NoError(t, err)
+	require.Equal(t, out, string(expectedJson))
+
 }
 
 func tracesTest(t *testing.T, test testCfg) {
@@ -282,36 +162,28 @@ func tracesTest(t *testing.T, test testCfg) {
 	require.NoError(t, err)
 	err = exporter.Start(t.Context(), componenttest.NewNopHost())
 	require.NoError(t, err)
-	err = exporter.ConsumeTraces(t.Context(), tracesData)
-	require.NoError(t, err, "Must not error while sending Traces data")
-	require.NoError(t, err, "Must not error while sending Trace data")
-	waitForEventToBeIndexed()
 
-	events := testutils.CheckEventsFromSplunk("index="+test.config.index+" *", test.startTime)
-	assert.Len(t, events, 1)
-	// check fields
-	data, ok := events[0].(map[string]any)
-	assert.True(t, ok, "Invalid event format")
-	assert.Equal(t, test.config.index, data["index"].(string))
-	assert.Equal(t, test.config.source, data["source"].(string))
-	assert.Equal(t, test.config.sourcetype, data["sourcetype"].(string))
+	out, err := captureOutput(exporter.ConsumeTraces, t.Context(), tracesData)
+	require.NotEmpty(t, out)
+	require.NoError(t, err, "Must not error while sending trace data")
+	expectedJson, err := os.ReadFile(test.expectedResultFilePath)
+	require.NoError(t, err)
+	require.Equal(t, out, string(expectedJson))
 }
 
 func TestSplunkHecExporter(t *testing.T) {
-	splunkContCfg := setup()
-	defer teardown(splunkContCfg)
-
 	tests := []testCfg{
 		{
-			name: "Events to Splunk",
+			name: "Events to Splunk - logs",
 			config: &cfg{
 				event:      "test log",
 				index:      "main",
 				source:     "otel",
 				sourcetype: "st-otel",
 			},
-			startTime: "-3h@h",
-			telType:   logsType,
+			startTime:              "-3h@h",
+			telType:                logsType,
+			expectedResultFilePath: "./testdata/expected_hec_log.json",
 		},
 		{
 			name: "Events to Splunk - Non default index",
@@ -321,8 +193,9 @@ func TestSplunkHecExporter(t *testing.T) {
 				source:     "otel-source",
 				sourcetype: "sck-otel-st",
 			},
-			startTime: "-1m@m",
-			telType:   logsType,
+			startTime:              "-1m@m",
+			telType:                logsType,
+			expectedResultFilePath: "./testdata/expected_hec_log_non_default_index.json",
 		},
 		{
 			name: "Events to Splunk - metrics",
@@ -332,8 +205,9 @@ func TestSplunkHecExporter(t *testing.T) {
 				source:     "otel",
 				sourcetype: "st-otel",
 			},
-			startTime: "",
-			telType:   metricsType,
+			startTime:              "",
+			telType:                metricsType,
+			expectedResultFilePath: "./testdata/expected_hec_metric.json",
 		},
 		{
 			name: "Events to Splunk - traces",
@@ -343,19 +217,13 @@ func TestSplunkHecExporter(t *testing.T) {
 				source:     "trace-source",
 				sourcetype: "trace-sourcetype",
 			},
-			startTime: "-1m@m",
-			telType:   tracesType,
+			startTime:              "-1m@m",
+			telType:                tracesType,
+			expectedResultFilePath: "./testdata/expected_hec_trace.json",
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			logger := zaptest.NewLogger(t)
-			logger.Info("Test -> Splunk running at:", zap.String("host", testutils.GetConfigVariable("HOST")),
-				zap.String("uiPort", testutils.GetConfigVariable("UI_PORT")),
-				zap.String("hecPort", testutils.GetConfigVariable("HEC_PORT")),
-				zap.String("managementPort", testutils.GetConfigVariable("MANAGEMENT_PORT")),
-			)
-
 			switch test.telType {
 			case logsType:
 				logsTest(t, test)

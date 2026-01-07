@@ -1,3 +1,5 @@
+include Makefile.common
+
 GOCMD?=go
 
 FIND_MOD_ARGS=-type f -name "go.mod"  -not -path "./packaging/technical-addon/*"

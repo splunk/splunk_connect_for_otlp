@@ -47,7 +47,7 @@ $> make tgz
 
 This will build the binaries, and assemble the TA tar.gz archive.
 
-The archive is created as otlpinput.tgz.
+The archive is created as splunk-connect-for-otlp.tgz.
 
 ## Testing
 
@@ -92,5 +92,5 @@ $> telemetrygen metrics --otlp-insecure --otlp-endpoint 0.0.0.0:4317 --metrics 1
 
 # Binary File Declaration
 The following binaries are written in Go present in the source repository:
-- linux_x86_64/bin/otlpinput
-- windows_x86_64/bin/otlpinput
+- linux_x86_64/bin/splunk-connect-for-otlp
+- windows_x86_64/bin/splunk-connect-for-otlp

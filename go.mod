@@ -1,9 +1,9 @@
-module github.com/splunk/otlpinput
+module github.com/splunk/otlp2splunk
 
 go 1.24.0
 
 require (
-	github.com/splunk/otlpinput/internal/exporter/stdoutexporter v0.0.1
+	github.com/splunk/otlp2splunk/internal/exporter/stdoutexporter v0.0.1
 	github.com/stretchr/testify v1.11.1
 	go.opentelemetry.io/collector/component v1.49.0
 	go.opentelemetry.io/collector/component/componentstatus v0.143.0
@@ -93,4 +93,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/splunk/otlpinput/internal/exporter/stdoutexporter => ./internal/exporter/stdoutexporter
+replace github.com/splunk/otlp2splunk/internal/exporter/stdoutexporter => ./internal/exporter/stdoutexporter

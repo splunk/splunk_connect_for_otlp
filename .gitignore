@@ -1,6 +1,6 @@
-otlpinput.tgz
-ta/otlpinput/linux_x86_64/bin/otlpinput
-ta/otlpinput/windows_x86_64/bin/otlpinput
+splunk-connect-for-otlp.tgz
+ta/splunk-connect-for-otlp/linux_x86_64/bin/splunk-connect-for-otlp
+ta/splunk-connect-for-otlp/windows_x86_64/bin/splunk-connect-for-otlp
 
 # GoLand IDEA
 /.idea/

@@ -1,4 +1,4 @@
-<endpoint name="data/inputs/otlpinput">
+<endpoint name="data/inputs/splunk-connect-for-otlp">
     <header>OTLP Input</header>
     <breadcrumb>
         <parent hidecurrent="False">datainputstats</parent>

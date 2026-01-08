@@ -14,26 +14,26 @@ all:
 
 .PHONY := tgz
 tgz: build
-	tar --format ustar -C ta -czvf otlpinput.tgz otlpinput
+	tar --format ustar -C ta -czvf splunk-connect-for-otlp.tgz splunk-connect-for-otlp
 
-otlpinput.tgz: tgz
+splunk-connect-for-otlp.tgz: tgz
 
-ta/otlpinput/linux_x86_64/bin/otlpinput: $(shell find  **/*.go -type f)
-	mkdir -p ../../ta/otlpinput/linux_x86_64/bin
-	GOOS=linux GOARCH=amd64 go build -C cmd/otlpinput -trimpath -o ../../ta/otlpinput/linux_x86_64/bin/otlpinput .
+ta/splunk-connect-for-otlp/linux_x86_64/bin/splunk-connect-for-otlp: $(shell find  **/*.go -type f)
+	mkdir -p ../../ta/splunk-connect-for-otlp/linux_x86_64/bin
+	GOOS=linux GOARCH=amd64 go build -C cmd/splunk-connect-for-otlp -trimpath -o ../../ta/splunk-connect-for-otlp/linux_x86_64/bin/splunk-connect-for-otlp .
 
-ta/otlpinput/windows_x86_64/bin/otlpinput: $(shell find  **/*.go -type f)
-	mkdir -p ../../ta/otlpinput/windows_x86_64/bin
-	GOOS=windows GOARCH=amd64 go build -C cmd/otlpinput -trimpath -o ../../ta/otlpinput/windows_x86_64/bin/otlpinput .
+ta/splunk-connect-for-otlp/windows_x86_64/bin/splunk-connect-for-otlp: $(shell find  **/*.go -type f)
+	mkdir -p ../../ta/splunk-connect-for-otlp/windows_x86_64/bin
+	GOOS=windows GOARCH=amd64 go build -C cmd/splunk-connect-for-otlp -trimpath -o ../../ta/splunk-connect-for-otlp/windows_x86_64/bin/splunk-connect-for-otlp .
 
 .PHONY := build
-build: ta/otlpinput/linux_x86_64/bin/otlpinput ta/otlpinput/windows_x86_64/bin/otlpinput
+build: ta/splunk-connect-for-otlp/linux_x86_64/bin/splunk-connect-for-otlp ta/splunk-connect-for-otlp/windows_x86_64/bin/splunk-connect-for-otlp
 
 .PHONY := splunk
-splunk: otlpinput.tgz
-	docker run --rm -it -v $(PWD)/otlpinput.tgz:/tmp/otlpinput.tgz \
+splunk: splunk-connect-for-otlp.tgz
+	docker run --rm -it -v $(PWD)/splunk-connect-for-otlp.tgz:/tmp/splunk-connect-for-otlp.tgz \
 		-e "SPLUNK_PASSWORD=changeme" \
-		-e "SPLUNK_APPS_URL=file:///tmp/otlpinput.tgz" \
+		-e "SPLUNK_APPS_URL=file:///tmp/splunk-connect-for-otlp.tgz" \
 		-e "SPLUNK_START_ARGS=--accept-license" \
 		-e "SPLUNK_HEC_TOKEN=000000-0000-00000-0000000000" \
 		-p 4317:4317 \

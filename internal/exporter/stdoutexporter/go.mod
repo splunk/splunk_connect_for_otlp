@@ -1,4 +1,4 @@
-module github.com/splunk/otlpinput/internal/exporter/stdoutexporter
+module github.com/splunk/otlp2splunk/internal/exporter/stdoutexporter
 
 go 1.24.0
 

@@ -5,7 +5,12 @@ GOCMD?=go
 FIND_MOD_ARGS=-type f -name "go.mod"  -not -path "./packaging/technical-addon/*"
 TO_MOD_DIR=dirname {} \; | sort | egrep  '^./'
 
-ALL_MODS := $(shell find . $(FIND_MOD_ARGS) -exec $(TO_MOD_DIR)) $(PWD)
+ALL_MODS := $(shell find . $(FIND_MOD_ARGS) -exec $(TO_MOD_DIR))
+
+.PHONY := all
+all:
+	@echo $(ALL_MODS)
+	@echo $(ALL_PKG_DIRS)
 
 .PHONY := tgz
 tgz: build

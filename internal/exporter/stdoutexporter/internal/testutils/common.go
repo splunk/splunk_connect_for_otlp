@@ -31,44 +31,44 @@ type IntegrationTestsConfig struct {
 	SplunkImage    string `yaml:"SPLUNK_IMAGE"`
 }
 
-func GetConfigVariable(key string) string {
+func GetConfigVariable(key string) (string, error) {
 	// Read YAML file
 	fileData, err := os.ReadFile(configFilePath)
 	if err != nil {
-		fmt.Println("Error reading file:", err)
+		return "", fmt.Errorf("Error reading file: %v", err)
 	}
 
 	var config IntegrationTestsConfig
 	err = yaml.Unmarshal(fileData, &config)
 	if err != nil {
-		fmt.Println("Error decoding YAML:", err)
+		return "", fmt.Errorf("Error decoding YAML: %v", err)
 	}
 
 	switch key {
 	case "HOST":
-		return config.Host
+		return config.Host, nil
 	case "USER":
-		return config.User
+		return config.User, nil
 	case "PASSWORD":
-		return config.Password
+		return config.Password, nil
 	case "UI_PORT":
-		return config.UIPort
+		return config.UIPort, nil
 	case "HEC_PORT":
-		return config.HecPort
+		return config.HecPort, nil
 	case "MANAGEMENT_PORT":
-		return config.ManagementPort
+		return config.ManagementPort, nil
 	case "EVENT_INDEX":
-		return config.EventIndex
+		return config.EventIndex, nil
 	case "METRIC_INDEX":
-		return config.MetricIndex
+		return config.MetricIndex, nil
 	case "TRACE_INDEX":
-		return config.TraceIndex
+		return config.TraceIndex, nil
 	case "HEC_TOKEN":
-		return config.HecToken
+		return config.HecToken, nil
 	case "SPLUNK_IMAGE":
-		return config.SplunkImage
+		return config.SplunkImage, nil
 	default:
 		fmt.Println("Invalid field")
-		return "None"
+		return "None", nil
 	}
 }

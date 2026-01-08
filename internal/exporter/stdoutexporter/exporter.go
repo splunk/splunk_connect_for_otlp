@@ -67,7 +67,7 @@ func (s *stdoutExporter) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 	for i := 0; i < ld.ResourceLogs().Len(); i++ {
 		rl := ld.ResourceLogs().At(i)
 		r := rl.Resource()
-		for j := 0; j < ld.ResourceLogs().Len(); j++ {
+		for j := 0; j < rl.ScopeLogs().Len(); j++ {
 			sl := rl.ScopeLogs().At(j)
 			for k := 0; k < sl.LogRecords().Len(); k++ {
 				logRecord := sl.LogRecords().At(k)

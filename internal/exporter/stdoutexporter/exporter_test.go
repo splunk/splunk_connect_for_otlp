@@ -172,6 +172,12 @@ func tracesTest(t *testing.T, test testCfg) {
 }
 
 func TestSplunkHecExporter(t *testing.T) {
+	eventIndex, err := testutils.GetConfigVariable("EVENT_INDEX")
+	require.NoError(t, err)
+	metricIndex, err := testutils.GetConfigVariable("METRIC_INDEX")
+	require.NoError(t, err)
+	traceIndex, err := testutils.GetConfigVariable("TRACE_INDEX")
+	require.NoError(t, err)
 	tests := []testCfg{
 		{
 			name: "Events to Splunk - logs",
@@ -189,7 +195,7 @@ func TestSplunkHecExporter(t *testing.T) {
 			name: "Events to Splunk - Non default index",
 			config: &cfg{
 				event:      "This is my new event! And some number 101",
-				index:      testutils.GetConfigVariable("EVENT_INDEX"),
+				index:      eventIndex,
 				source:     "otel-source",
 				sourcetype: "sck-otel-st",
 			},
@@ -201,7 +207,7 @@ func TestSplunkHecExporter(t *testing.T) {
 			name: "Events to Splunk - metrics",
 			config: &cfg{
 				event:      "test.metric",
-				index:      testutils.GetConfigVariable("METRIC_INDEX"),
+				index:      metricIndex,
 				source:     "otel",
 				sourcetype: "st-otel",
 			},
@@ -213,7 +219,7 @@ func TestSplunkHecExporter(t *testing.T) {
 			name: "Events to Splunk - traces",
 			config: &cfg{
 				event:      "",
-				index:      testutils.GetConfigVariable("TRACE_INDEX"),
+				index:      traceIndex,
 				source:     "trace-source",
 				sourcetype: "trace-sourcetype",
 			},

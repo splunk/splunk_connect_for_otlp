@@ -1,14 +1,14 @@
 // Copyright Splunk Inc. 2025
 // SPDX-License-Identifier: Apache-2.0
 
-// Program otlpinput is a binary listening for OTLP data and exporting it to stdout.
+// Program splunk-connect-for-otlp is a binary listening for OTLP data and exporting it to stdout.
 package main
 
 import (
 	"context"
 	"fmt"
-	"github.com/splunk/otlpinput/internal"
-	"github.com/splunk/otlpinput/internal/exporter/stdoutexporter"
+	"github.com/splunk/otlp2splunk/internal"
+	"github.com/splunk/otlp2splunk/internal/exporter/stdoutexporter"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/exporter"

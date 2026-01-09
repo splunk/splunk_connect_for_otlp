@@ -6,13 +6,13 @@ package stdoutexporter
 import (
 	"context"
 	"encoding/hex"
+	"github.com/splunk/otlp2splunk/internal/exporter/stdoutexporter/internal/testutils"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"io"
 	"os"
 	"testing"
 	"time"
 
-	"github.com/splunk/otlpinput/internal/exporter/stdoutexporter/internal/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/exporter/exportertest"

@@ -1,4 +1,16 @@
+include Makefile.common
+
 GOCMD?=go
+
+FIND_MOD_ARGS=-type f -name "go.mod"  -not -path "./packaging/technical-addon/*"
+TO_MOD_DIR=dirname {} \; | sort | egrep  '^./'
+
+ALL_MODS := $(shell find . $(FIND_MOD_ARGS) -exec $(TO_MOD_DIR))
+
+.PHONY := all
+all:
+	@echo $(ALL_MODS)
+	@echo $(ALL_PKG_DIRS)
 
 .PHONY := tgz
 tgz: build
@@ -29,9 +41,20 @@ splunk: otlpinput.tgz
 		-p 8000:8000 \
 		splunk/splunk:9.3
 
-.PHONY := test
-test:
-	go test -v ./...
+# Define a delegation target for each module
+.PHONY: $(ALL_MODS)
+$(ALL_MODS):
+	@echo "Running target '$(TARGET)' in module '$@'"
+	$(MAKE) --no-print-directory -C $@ $(TARGET)
+
+# Triggers each module's delegation target
+.PHONY: for-all-target
+for-all-target: $(ALL_MODS)
+
+.PHONY: test-all
+test-all:
+	$(MAKE) for-all-target TARGET="test"
+	$(MAKE) test
 
 .PHONY: gotidy
 gotidy:

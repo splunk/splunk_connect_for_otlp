@@ -3,8 +3,11 @@
 
 package stdoutexporter
 
-import "go.opentelemetry.io/collector/exporter/exporterhelper"
+import (
+	"go.opentelemetry.io/collector/config/configoptional"
+	"go.opentelemetry.io/collector/exporter/exporterhelper"
+)
 
 type Config struct {
-	QueueBatchConfig exporterhelper.QueueBatchConfig `mapstructure:"batch_config"`
+	QueueBatchConfig configoptional.Optional[exporterhelper.QueueBatchConfig] `mapstructure:"batch_config"`
 }

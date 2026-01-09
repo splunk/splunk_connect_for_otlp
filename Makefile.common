@@ -1,0 +1,17 @@
+# In order to ensure make instructions fail if there is command that fails a pipe (ie: `go test ... | tee -a ./test_results.txt`)
+# the value `-o pipefail` (or `set -o pipefail`) is added to each shell command that make runs
+# otherwise in the example command pipe, only the exit code of `tee` is recorded instead of `go test` which can cause
+# test to pass in CI when they should not.
+SHELL = /usr/bin/env bash
+.SHELLFLAGS = -o pipefail -c
+
+# build tags required by any component should be defined as an independent variables and later added to GO_BUILD_TAGS below
+GO_BUILD_TAGS=""
+GOTEST_OPT?= -v -timeout 180s --tags=$(GO_BUILD_TAGS)
+
+GOCMD?= go
+GOTEST=$(GOCMD) test
+
+.PHONY: test
+test:
+	$(GOTEST) $(GOTEST_OPT) ./...

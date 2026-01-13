@@ -31,7 +31,6 @@ ifeq ($(COVER_TESTING),true)
 COVER_PKGS := $(shell find . $(EXCLUDE_MODS) $(FIND_MOD_ARGS) -execdir $(GOCMD) list ./... \; | tr "\n" "," )
 COVER_DIR?=coverage
 COVER_DIR_ABS?=$(SRC_ROOT)/$(COVER_DIR)
-TEST_COVER_DIR?=$(SRC_ROOT)/tests/$(COVER_DIR)
 COVER_OPTS?=-cover -covermode=atomic -coverpkg $(COVER_PKGS)
 COVER_TESTING_OPTS?=$(COVER_OPTS) -args -test.gocoverdir="$(COVER_DIR_ABS)"
 

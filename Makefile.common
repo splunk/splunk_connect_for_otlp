@@ -37,7 +37,6 @@ COVER_TESTING_OPTS?=$(COVER_OPTS) -args -test.gocoverdir="$(COVER_DIR_ABS)"
 
 .PHONY: test-with-codecov
 test-with-codecov:
-	@echo "Cover PKG: $(COVER_PKGS)"
 	mkdir -p $(COVER_DIR_ABS)
 	$(GOTEST) $(GOTEST_OPT_WITHOUT_RACE) ./... $(COVER_TESTING_OPTS)
 

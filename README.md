@@ -68,7 +68,7 @@ See the [example folder](./example) for a collector configuration.
 
 ### Telemetrygen
 
-You can generate a payload using [telemetrygen](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/cmd/telemetrygen.
+You can generate a payload using [telemetrygen](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/cmd/telemetrygen).
 
 Install telemetrygen with:
 ```shell

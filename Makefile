@@ -2,7 +2,7 @@ include Makefile.common
 
 GOCMD?=go
 
-FIND_MOD_ARGS=-type f -name "go.mod"  -not -path "./packaging/technical-addon/*"
+FIND_MOD_ARGS=-type f -name "go.mod"  -not -path "./ta/*"
 TO_MOD_DIR=dirname {} \; | sort | egrep  '^./'
 
 ALL_MODS := $(shell find . $(FIND_MOD_ARGS) -exec $(TO_MOD_DIR))
@@ -62,3 +62,13 @@ gotidy:
 		echo "Tidying $$mod"; \
 		(cd $$mod && rm -rf go.sum && $(GOCMD) mod tidy -compat=1.24.0 && $(GOCMD) get toolchain@none) || exit $?; \
 	done
+
+ifeq ($(COVER_TESTING),true)
+# These targets are expensive to build, so only build if explicitly requested
+
+.PHONY: gotest-with-codecov
+gotest-with-codecov:
+	@$(MAKE) for-all-target TARGET="test-with-codecov"
+	$(GOCMD) tool covdata textfmt -i=./coverage -o ./coverage.txt
+
+endif

@@ -32,3 +32,20 @@ jobs:
       - name: Tests
         run: make test-all
 
+  coverage:
+    name: coverage
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-environment
+
+      - name: Run Unit Tests With Coverage
+        run: COVER_TESTING=true make gotest-with-codecov
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # 5.5.1
+        with:
+          fail_ci_if_error: true
+          verbose: true
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

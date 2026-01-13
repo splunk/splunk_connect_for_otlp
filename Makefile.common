@@ -25,8 +25,8 @@ FIND_MOD_ARGS=-type f -name "go.mod"
 test:
 	$(GOTEST) $(GOTEST_OPT) ./...
 
-# These variables and targets are expensive to build, so only build if explicitly requested
 ifeq ($(COVER_TESTING),true)
+# These variables and targets are expensive to build, so only build if explicitly requested
 
 COVER_PKGS := $(shell find . $(EXCLUDE_MODS) $(FIND_MOD_ARGS) -execdir $(GOCMD) list ./... \; | tr "\n" "," )
 COVER_DIR?=coverage

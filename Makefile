@@ -7,11 +7,6 @@ TO_MOD_DIR=dirname {} \; | sort | egrep  '^./'
 
 ALL_MODS := $(shell find . $(FIND_MOD_ARGS) -exec $(TO_MOD_DIR))
 
-.PHONY := all
-all:
-	@echo $(ALL_MODS)
-	@echo $(ALL_PKG_DIRS)
-
 .PHONY := tgz
 tgz: build
 	tar --format ustar -C ta -czvf splunk-connect-for-otlp.tgz splunk-connect-for-otlp

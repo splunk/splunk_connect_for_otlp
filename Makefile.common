@@ -12,6 +12,31 @@ GOTEST_OPT?= -v -timeout 180s --tags=$(GO_BUILD_TAGS)
 GOCMD?= go
 GOTEST=$(GOCMD) test
 
+SRC_ROOT := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
+
+# Used for building to collect coverage information
+COVER_TESTING?=false
+
+# COVER_PKGS is the list of packages to include in the test coverage
+EXCLUDE_MODS=-not -path "./example/*" -not -path "./ta/*"
+FIND_MOD_ARGS=-type f -name "go.mod"
+
 .PHONY: test
 test:
 	$(GOTEST) $(GOTEST_OPT) ./...
+
+ifeq ($(COVER_TESTING),true)
+# These variables and targets are expensive to build, so only build if explicitly requested
+
+COVER_PKGS := $(shell find . $(EXCLUDE_MODS) $(FIND_MOD_ARGS) -execdir $(GOCMD) list ./... \; | tr "\n" "," )
+COVER_DIR?=coverage
+COVER_DIR_ABS?=$(SRC_ROOT)/$(COVER_DIR)
+COVER_OPTS?=-cover -covermode=atomic -coverpkg $(COVER_PKGS)
+COVER_TESTING_OPTS?=$(COVER_OPTS) -args -test.gocoverdir="$(COVER_DIR_ABS)"
+
+.PHONY: test-with-codecov
+test-with-codecov:
+	mkdir -p $(COVER_DIR_ABS)
+	$(GOTEST) $(GOTEST_OPT_WITHOUT_RACE) ./... $(COVER_TESTING_OPTS)
+
+endif

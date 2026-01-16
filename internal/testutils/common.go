@@ -6,7 +6,6 @@ package testutils
 import (
 	"bufio"
 	"bytes"
-	"context"
 	"fmt"
 	"io"
 	"net"
@@ -86,19 +85,6 @@ func GetConfigVariable(key string) (string, error) {
 	}
 }
 
-// CaptureOutput executes f while diverting stdout to a pipe and returns the captured output.
-func CaptureOutput[telemetry any](f func(context.Context, telemetry) error, ctx context.Context, tel telemetry) (string, error) {
-	orig := os.Stdout
-	r, w, _ := os.Pipe()
-	os.Stdout = w
-	err := f(ctx, tel)
-	time.Sleep(1 * time.Second)
-	os.Stdout = orig
-	w.Close()
-	out, _ := io.ReadAll(r)
-	return string(out), err
-}
-
 // WriteToStdin pipes the provided content into os.Stdin and returns a restore function.
 func WriteToStdin(t *testing.T, content string) func() {
 	t.Helper()
@@ -144,6 +130,9 @@ func CaptureStdout(t *testing.T, fn func()) string {
 	}()
 
 	fn()
+
+	// TODO: Find a way to synchronize without sleep. This is currently required
+	time.Sleep(1 * time.Second)
 
 	_ = w.Close()
 	os.Stdout = original

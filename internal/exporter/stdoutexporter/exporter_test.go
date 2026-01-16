@@ -112,7 +112,10 @@ func logsTest(t *testing.T, test testCfg) {
 	require.NoError(t, err)
 	err = exporter.Start(t.Context(), componenttest.NewNopHost())
 	require.NoError(t, err)
-	out, err := testutils.CaptureOutput(exporter.ConsumeLogs, t.Context(), logs)
+	var out string
+	out = testutils.CaptureStdout(t, func() {
+		err = exporter.ConsumeLogs(t.Context(), logs)
+	})
 
 	require.NotEmpty(t, out)
 	require.NoError(t, err, "Must not error while sending log data")
@@ -130,7 +133,10 @@ func metricsTest(t *testing.T, test testCfg) {
 	err = exporter.Start(t.Context(), componenttest.NewNopHost())
 	require.NoError(t, err)
 
-	out, err := testutils.CaptureOutput(exporter.ConsumeMetrics, t.Context(), metricData)
+	var out string
+	out = testutils.CaptureStdout(t, func() {
+		err = exporter.ConsumeMetrics(t.Context(), metricData)
+	})
 	require.NotEmpty(t, out)
 	require.NoError(t, err, "Must not error while sending metric data")
 	expectedJson, err := os.ReadFile(test.expectedResultFilePath)
@@ -148,7 +154,10 @@ func tracesTest(t *testing.T, test testCfg) {
 	err = exporter.Start(t.Context(), componenttest.NewNopHost())
 	require.NoError(t, err)
 
-	out, err := testutils.CaptureOutput(exporter.ConsumeTraces, t.Context(), tracesData)
+	var out string
+	out = testutils.CaptureStdout(t, func() {
+		err = exporter.ConsumeTraces(t.Context(), tracesData)
+	})
 	require.NotEmpty(t, out)
 	require.NoError(t, err, "Must not error while sending trace data")
 	expectedJson, err := os.ReadFile(test.expectedResultFilePath)

@@ -55,28 +55,12 @@ func GetConfigVariable(configPath, key string) (string, error) {
 	}
 
 	switch key {
-	case "HOST":
-		return config.Host, nil
-	case "USER":
-		return config.User, nil
-	case "PASSWORD":
-		return config.Password, nil
-	case "UI_PORT":
-		return config.UIPort, nil
-	case "HEC_PORT":
-		return config.HecPort, nil
-	case "MANAGEMENT_PORT":
-		return config.ManagementPort, nil
 	case "EVENT_INDEX":
 		return config.EventIndex, nil
 	case "METRIC_INDEX":
 		return config.MetricIndex, nil
 	case "TRACE_INDEX":
 		return config.TraceIndex, nil
-	case "HEC_TOKEN":
-		return config.HecToken, nil
-	case "SPLUNK_IMAGE":
-		return config.SplunkImage, nil
 	default:
 		fmt.Println("Invalid field")
 		return "None", fmt.Errorf("Invalid field %v", key)

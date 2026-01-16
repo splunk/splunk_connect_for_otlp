@@ -4,14 +4,11 @@
 package stdoutexporter
 
 import (
-	"context"
 	"encoding/hex"
-	"github.com/splunk/otlp2splunk/internal/exporter/stdoutexporter/internal/testutils"
+	"github.com/splunk/otlp2splunk/internal/testutils"
 	"go.opentelemetry.io/collector/component/componenttest"
-	"io"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -102,18 +99,6 @@ type testCfg struct {
 	expectedResultFilePath string
 }
 
-func captureOutput[telemetry any](f func(context.Context, telemetry) error, ctx context.Context, tel telemetry) (string, error) {
-	orig := os.Stdout
-	r, w, _ := os.Pipe()
-	os.Stdout = w
-	err := f(ctx, tel)
-	time.Sleep(1 * time.Second)
-	os.Stdout = orig
-	w.Close()
-	out, _ := io.ReadAll(r)
-	return string(out), err
-}
-
 func logsTest(t *testing.T, test testCfg) {
 	settings := exportertest.NewNopSettings(exportertest.NopType)
 	var logs plog.Logs
@@ -127,7 +112,7 @@ func logsTest(t *testing.T, test testCfg) {
 	require.NoError(t, err)
 	err = exporter.Start(t.Context(), componenttest.NewNopHost())
 	require.NoError(t, err)
-	out, err := captureOutput(exporter.ConsumeLogs, t.Context(), logs)
+	out, err := testutils.CaptureOutput(exporter.ConsumeLogs, t.Context(), logs)
 
 	require.NotEmpty(t, out)
 	require.NoError(t, err, "Must not error while sending log data")
@@ -145,7 +130,7 @@ func metricsTest(t *testing.T, test testCfg) {
 	err = exporter.Start(t.Context(), componenttest.NewNopHost())
 	require.NoError(t, err)
 
-	out, err := captureOutput(exporter.ConsumeMetrics, t.Context(), metricData)
+	out, err := testutils.CaptureOutput(exporter.ConsumeMetrics, t.Context(), metricData)
 	require.NotEmpty(t, out)
 	require.NoError(t, err, "Must not error while sending metric data")
 	expectedJson, err := os.ReadFile(test.expectedResultFilePath)
@@ -163,7 +148,7 @@ func tracesTest(t *testing.T, test testCfg) {
 	err = exporter.Start(t.Context(), componenttest.NewNopHost())
 	require.NoError(t, err)
 
-	out, err := captureOutput(exporter.ConsumeTraces, t.Context(), tracesData)
+	out, err := testutils.CaptureOutput(exporter.ConsumeTraces, t.Context(), tracesData)
 	require.NotEmpty(t, out)
 	require.NoError(t, err, "Must not error while sending trace data")
 	expectedJson, err := os.ReadFile(test.expectedResultFilePath)

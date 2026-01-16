@@ -5,6 +5,7 @@ go 1.24.0
 require (
 	github.com/goccy/go-json v0.10.5
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/splunk v0.143.0
+	github.com/splunk/otlp2splunk/internal/testutils v0.0.1
 	github.com/stretchr/testify v1.11.1
 	go.opentelemetry.io/collector/component v1.49.0
 	go.opentelemetry.io/collector/component/componenttest v0.143.0
@@ -69,3 +70,5 @@ require (
 	google.golang.org/grpc v1.78.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 )
+
+replace github.com/splunk/otlp2splunk/internal/testutils => ../../testutils

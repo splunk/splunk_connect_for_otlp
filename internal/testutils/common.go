@@ -20,6 +20,7 @@ import (
 )
 
 const (
+	defaultTimeout         = 5 * time.Second
 	DefaultSourceTypeLabel = "com.splunk.sourcetype"
 	DefaultSourceLabel     = "com.splunk.source"
 	DefaultIndexLabel      = "com.splunk.index"
@@ -166,7 +167,6 @@ func CaptureStdoutLines(t *testing.T) (<-chan string, func()) {
 	}
 }
 
-// GetFreePort returns an available TCP port bound to the loopback address.
 func GetFreePort(t *testing.T) int {
 	t.Helper()
 
@@ -178,12 +178,12 @@ func GetFreePort(t *testing.T) int {
 	return l.Addr().(*net.TCPAddr).Port
 }
 
-// PostOTLP sends the provided payload to the OTLP endpoint, retrying until success or timeout.
+// PostOTLP sends the provided data to the endpoint, retrying until success or timeout.
 func PostOTLP(t *testing.T, port int, path string, body []byte) {
 	t.Helper()
 
 	url := fmt.Sprintf("http://127.0.0.1:%d%s", port, path)
-	deadline := time.Now().Add(5 * time.Second)
+	deadline := time.Now().Add(defaultTimeout)
 
 	lastRespCode := 0
 	for {
@@ -204,11 +204,13 @@ func PostOTLP(t *testing.T, port int, path string, body []byte) {
 }
 
 // CollectLines reads expectedCount lines from the provided channel or fails on timeout.
+// Note: There's the possibility that more lines were sent to stdout than expected,
+// so the caller must check returned data contents.
 func CollectLines(t *testing.T, ch <-chan string, expectedCount int) []string {
 	t.Helper()
 
 	var lines []string
-	timeout := time.After(10 * time.Second)
+	timeout := time.After(defaultTimeout)
 	for len(lines) < expectedCount {
 		select {
 		case line, ok := <-ch:
@@ -223,7 +225,6 @@ func CollectLines(t *testing.T, ch <-chan string, expectedCount int) []string {
 	return lines
 }
 
-// LoadExpectedHecData loads and returns fixture data from the provided path.
 func LoadExpectedHecData(t *testing.T, path string) []byte {
 	t.Helper()
 

@@ -17,13 +17,11 @@ import (
 var testDataDir = "../../../cmd/splunk-connect-for-otlp/testdata"
 
 func BenchmarkStdoutExporter(b *testing.B) {
-	originalWriter := stdoutWriter
 	stdoutWriter = func([]byte) error { return nil }
-	b.Cleanup(func() { stdoutWriter = originalWriter })
 
 	settings := exportertest.NewNopSettings(exportertest.NopType)
 	cfg := createDefaultConfig().(*Config)
-	cfg.QueueBatchConfig.GetOrInsertDefault().QueueSize = 150000
+	cfg.QueueBatchConfig.GetOrInsertDefault().QueueSize = 1000000
 	ctx := context.Background()
 
 	tests := []struct {

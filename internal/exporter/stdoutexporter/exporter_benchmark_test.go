@@ -21,7 +21,7 @@ func BenchmarkStdoutExporter(b *testing.B) {
 
 	settings := exportertest.NewNopSettings(exportertest.NopType)
 	cfg := createDefaultConfig().(*Config)
-	cfg.QueueBatchConfig.GetOrInsertDefault().QueueSize = 1000000
+	cfg.QueueBatchConfig.GetOrInsertDefault().QueueSize = 1e6 // Set to a large value so sending queue doesn't get full
 	ctx := context.Background()
 
 	tests := []struct {
@@ -95,7 +95,7 @@ func setupMetricsExporter(b *testing.B, ctx context.Context, settings exporter.S
 	if err != nil {
 		b.Fatalf("failed to create metrics exporter: %v", err)
 	}
-	if err := exp.Start(ctx, componenttest.NewNopHost()); err != nil {
+	if err = exp.Start(ctx, componenttest.NewNopHost()); err != nil {
 		b.Fatalf("failed to start metrics exporter: %v", err)
 	}
 	return func(ctx context.Context) error {
@@ -109,7 +109,7 @@ func setupTracesExporter(b *testing.B, ctx context.Context, settings exporter.Se
 	if err != nil {
 		b.Fatalf("failed to create traces exporter: %v", err)
 	}
-	if err := exp.Start(ctx, componenttest.NewNopHost()); err != nil {
+	if err = exp.Start(ctx, componenttest.NewNopHost()); err != nil {
 		b.Fatalf("failed to start traces exporter: %v", err)
 	}
 	return func(ctx context.Context) error {
@@ -122,7 +122,7 @@ func setupLogsExporter(b *testing.B, ctx context.Context, settings exporter.Sett
 	if err != nil {
 		b.Fatalf("failed to create logs exporter: %v", err)
 	}
-	if err := exp.Start(ctx, componenttest.NewNopHost()); err != nil {
+	if err = exp.Start(ctx, componenttest.NewNopHost()); err != nil {
 		b.Fatalf("failed to start logs exporter: %v", err)
 	}
 	return func(ctx context.Context) error {

@@ -6,6 +6,8 @@ package stdoutexporter
 import (
 	"context"
 	"errors"
+	"os"
+
 	"github.com/goccy/go-json"
 	translator "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/splunk"
 
@@ -16,8 +18,9 @@ import (
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/pdata/ptrace"
-	"os"
 )
+
+var stdoutWriter = defaultStdoutWriter
 
 func newLogsExporter(ctx context.Context, set exporter.Settings, cfg component.Config) (exporter.Logs, error) {
 	oCfg := cfg.(*Config)
@@ -143,6 +146,10 @@ func (se *stdoutExporter) ConsumeMetrics(_ context.Context, md pmetric.Metrics) 
 }
 
 func (se *stdoutExporter) writeToStdout(b []byte) error {
+	return stdoutWriter(b)
+}
+
+func defaultStdoutWriter(b []byte) error {
 	_, err := os.Stdout.Write(append(b, '\n'))
 	return err
 }

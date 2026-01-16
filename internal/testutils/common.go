@@ -19,15 +19,12 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// Constants for Splunk components.
 const (
 	DefaultSourceTypeLabel = "com.splunk.sourcetype"
 	DefaultSourceLabel     = "com.splunk.source"
 	DefaultIndexLabel      = "com.splunk.index"
 	DefaultNameLabel       = "otel.log.name"
 )
-
-var configFilePath = "./testdata/test_config.yaml"
 
 type IntegrationTestsConfig struct {
 	Host           string `yaml:"HOST"`
@@ -43,9 +40,9 @@ type IntegrationTestsConfig struct {
 	SplunkImage    string `yaml:"SPLUNK_IMAGE"`
 }
 
-func GetConfigVariable(key string) (string, error) {
+func GetConfigVariable(configPath, key string) (string, error) {
 	// Read YAML file
-	fileData, err := os.ReadFile(configFilePath)
+	fileData, err := os.ReadFile(configPath)
 	if err != nil {
 		return "", fmt.Errorf("Error reading file: %v", err)
 	}
@@ -131,7 +128,7 @@ func CaptureStdout(t *testing.T, fn func()) string {
 
 	fn()
 
-	// TODO: Find a way to synchronize without sleep. This is currently required
+	// TODO: Find a way to synchronize without sleep.
 	time.Sleep(1 * time.Second)
 
 	_ = w.Close()

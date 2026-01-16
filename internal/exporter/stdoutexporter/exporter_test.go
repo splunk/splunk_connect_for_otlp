@@ -19,6 +19,8 @@ import (
 	"go.opentelemetry.io/collector/pdata/ptrace"
 )
 
+var configPath = "./testdata/test_config.yaml"
+
 func prepareLogs() plog.Logs {
 	logs := plog.NewLogs()
 	rl := logs.ResourceLogs().AppendEmpty()
@@ -166,11 +168,11 @@ func tracesTest(t *testing.T, test testCfg) {
 }
 
 func TestSplunkHecExporter(t *testing.T) {
-	eventIndex, err := testutils.GetConfigVariable("EVENT_INDEX")
+	eventIndex, err := testutils.GetConfigVariable(configPath, "EVENT_INDEX")
 	require.NoError(t, err)
-	metricIndex, err := testutils.GetConfigVariable("METRIC_INDEX")
+	metricIndex, err := testutils.GetConfigVariable(configPath, "METRIC_INDEX")
 	require.NoError(t, err)
-	traceIndex, err := testutils.GetConfigVariable("TRACE_INDEX")
+	traceIndex, err := testutils.GetConfigVariable(configPath, "TRACE_INDEX")
 	require.NoError(t, err)
 	tests := []testCfg{
 		{

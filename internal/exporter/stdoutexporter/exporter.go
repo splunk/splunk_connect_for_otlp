@@ -59,7 +59,7 @@ type stdoutExporter struct {
 	TelemetrySettings component.TelemetrySettings
 }
 
-func (s *stdoutExporter) ConsumeLogs(_ context.Context, ld plog.Logs) error {
+func (se *stdoutExporter) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 	toOtelAttrs := translator.DefaultHecToOtelAttrs()
 	toHecAttrs := translator.DefaultOtelToHecFields()
 
@@ -79,7 +79,7 @@ func (s *stdoutExporter) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 				if err != nil {
 					errs = append(errs, err)
 				} else {
-					if _, err = os.Stdout.Write(append(b, '\n')); err != nil {
+					if err = se.writeToStdout(b); err != nil {
 						errs = append(errs, err)
 					}
 				}
@@ -89,7 +89,7 @@ func (s *stdoutExporter) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 	return errors.Join(errs...)
 }
 
-func (s *stdoutExporter) ConsumeTraces(_ context.Context, td ptrace.Traces) error {
+func (se *stdoutExporter) ConsumeTraces(_ context.Context, td ptrace.Traces) error {
 	toOtelAttrs := translator.DefaultHecToOtelAttrs()
 
 	var errs []error
@@ -99,12 +99,12 @@ func (s *stdoutExporter) ConsumeTraces(_ context.Context, td ptrace.Traces) erro
 		for j := 0; j < rs.ScopeSpans().Len(); j++ {
 			ss := rs.ScopeSpans().At(j)
 			for k := 0; k < ss.Spans().Len(); k++ {
-				s := ss.Spans().At(k)
-				b, err := json.Marshal(translator.SpanToSplunkEvent(r, s, toOtelAttrs, "", "", ""))
+				span := ss.Spans().At(k)
+				b, err := json.Marshal(translator.SpanToSplunkEvent(r, span, toOtelAttrs, "", "", ""))
 				if err != nil {
 					errs = append(errs, err)
 				} else {
-					if _, err = os.Stdout.Write(append(b, '\n')); err != nil {
+					if err = se.writeToStdout(b); err != nil {
 						errs = append(errs, err)
 					}
 				}
@@ -114,7 +114,7 @@ func (s *stdoutExporter) ConsumeTraces(_ context.Context, td ptrace.Traces) erro
 	return errors.Join(errs...)
 }
 
-func (s *stdoutExporter) ConsumeMetrics(_ context.Context, md pmetric.Metrics) error {
+func (se *stdoutExporter) ConsumeMetrics(_ context.Context, md pmetric.Metrics) error {
 	toOtelAttrs := translator.DefaultHecToOtelAttrs()
 
 	var errs []error
@@ -125,12 +125,12 @@ func (s *stdoutExporter) ConsumeMetrics(_ context.Context, md pmetric.Metrics) e
 			sm := rm.ScopeMetrics().At(j)
 			for k := 0; k < sm.Metrics().Len(); k++ {
 				m := sm.Metrics().At(k)
-				for _, result := range translator.MetricToSplunkEvent(r, m, s.TelemetrySettings.Logger, toOtelAttrs, "", "", "") {
+				for _, result := range translator.MetricToSplunkEvent(r, m, se.TelemetrySettings.Logger, toOtelAttrs, "", "", "") {
 					b, err := json.Marshal(result)
 					if err != nil {
 						errs = append(errs, err)
 					} else {
-						if _, err = os.Stdout.Write(append(b, '\n')); err != nil {
+						if err = se.writeToStdout(b); err != nil {
 							errs = append(errs, err)
 						}
 					}
@@ -140,4 +140,9 @@ func (s *stdoutExporter) ConsumeMetrics(_ context.Context, md pmetric.Metrics) e
 		}
 	}
 	return errors.Join(errs...)
+}
+
+func (se *stdoutExporter) writeToStdout(b []byte) error {
+	_, err := os.Stdout.Write(append(b, '\n'))
+	return err
 }

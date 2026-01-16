@@ -95,4 +95,5 @@ require (
 )
 
 replace github.com/splunk/otlp2splunk/internal/exporter/stdoutexporter => ./internal/exporter/stdoutexporter
+
 replace github.com/splunk/otlp2splunk/internal/testutils => ./internal/testutils

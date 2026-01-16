@@ -91,6 +91,7 @@ func BenchmarkStdoutExporter(b *testing.B) {
 }
 
 func setupMetricsExporter(b *testing.B, ctx context.Context, settings exporter.Settings, cfg *Config, metrics pmetric.Metrics) func(context.Context) error {
+	b.Helper()
 	exp, err := newMetricsExporter(ctx, settings, cfg)
 	if err != nil {
 		b.Fatalf("failed to create metrics exporter: %v", err)
@@ -118,6 +119,7 @@ func setupTracesExporter(b *testing.B, ctx context.Context, settings exporter.Se
 }
 
 func setupLogsExporter(b *testing.B, ctx context.Context, settings exporter.Settings, cfg *Config, logs plog.Logs) func(context.Context) error {
+	b.Helper()
 	exp, err := newLogsExporter(ctx, settings, cfg)
 	if err != nil {
 		b.Fatalf("failed to create logs exporter: %v", err)

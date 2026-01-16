@@ -79,7 +79,7 @@ func GetConfigVariable(configPath, key string) (string, error) {
 		return config.SplunkImage, nil
 	default:
 		fmt.Println("Invalid field")
-		return "None", nil
+		return "None", fmt.Errorf("Invalid field %v", key)
 	}
 }
 

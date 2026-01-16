@@ -64,6 +64,7 @@ ifeq ($(COVER_TESTING),true)
 .PHONY: gotest-with-codecov
 gotest-with-codecov:
 	@$(MAKE) for-all-target TARGET="test-with-codecov"
+	@$(MAKE) test-with-codecov
 	$(GOCMD) tool covdata textfmt -i=./coverage -o ./coverage.txt
 
 endif

@@ -5,6 +5,7 @@ go 1.24.0
 require (
 	github.com/goccy/go-json v0.10.5
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/splunk v0.143.0
+	github.com/splunk/otlp2splunk/internal/testutils v0.0.1
 	github.com/stretchr/testify v1.11.1
 	go.opentelemetry.io/collector/component v1.49.0
 	go.opentelemetry.io/collector/component/componenttest v0.143.0
@@ -14,7 +15,6 @@ require (
 	go.opentelemetry.io/collector/exporter/exporterhelper v0.143.0
 	go.opentelemetry.io/collector/exporter/exportertest v0.143.0
 	go.opentelemetry.io/collector/pdata v1.49.0
-	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -68,4 +68,7 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20251029180050-ab9386a59fda // indirect
 	google.golang.org/grpc v1.78.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+replace github.com/splunk/otlp2splunk/internal/testutils => ../../testutils

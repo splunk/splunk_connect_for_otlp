@@ -4,6 +4,19 @@
 # test to pass in CI when they should not.
 SHELL = /usr/bin/env bash
 .SHELLFLAGS = -o pipefail -c
+UNIX_SHELL_ON_WINDOWS := $(shell $(SHELL_CASE_EXP))
+
+ifeq ($(UNIX_SHELL_ON_WINDOWS),true)
+	# The "sed" transformation below is needed on Windows, since commands like `go list -f '{{ .Dir }}'`
+	# return Windows paths and such paths are incompatible with other *nix tools, like `find`,
+	# used by the Makefile shell.
+	# The backslash needs to be doubled so its passed correctly to the shell.
+	NORMALIZE_DIRS = sed -e 's/^/\\//' -e 's/://' -e 's/\\\\/\\//g' | sort
+	NUM_CORES := ${NUMBER_OF_PROCESSORS}
+else
+	NORMALIZE_DIRS = sort
+	NUM_CORES := $(shell getconf _NPROCESSORS_ONLN)
+endif
 
 # build tags required by any component should be defined as an independent variables and later added to GO_BUILD_TAGS below
 GO_BUILD_TAGS=""
@@ -11,8 +24,25 @@ GOTEST_OPT?= -v -timeout 180s --tags=$(GO_BUILD_TAGS)
 
 GOCMD?= go
 GOTEST=$(GOCMD) test
+ADDLICENCESE= addlicense
+MDLINKCHECK=markdown-link-check
+MISSPELL=misspell -error
+MISSPELL_CORRECTION=misspell -w
+LINT=golangci-lint
 
 SRC_ROOT := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
+
+ALL_PKG_DIRS := $(shell $(GOCMD) list -f '{{ .Dir }}' ./... | $(NORMALIZE_DIRS))
+
+ALL_SRC := $(shell find $(ALL_PKG_DIRS) -name '*.go' \
+                                -not -path '*/example/*' \
+                                -not -path '*/ta/*' \
+                                -type f | sort)
+# All source code and documents. Used in spell check.
+ALL_SRC_AND_DOC := $(shell find $(ALL_PKG_DIRS) -name "*.md" -o -name "*.go" -o -name "*.yaml" \
+                                -not -path '*/example/*' \
+                                -not -path '*/ta/*' \
+                                -type f | sort)
 
 # Used for building to collect coverage information
 COVER_TESTING?=false
@@ -23,7 +53,7 @@ FIND_MOD_ARGS=-type f -name "go.mod"
 
 .PHONY: test
 test:
-	$(GOTEST) $(GOTEST_OPT) ./...
+	$(GOTEST) $(GOTEST_OPT) $(ALL_PKG_DIRS)
 
 ifeq ($(COVER_TESTING),true)
 # These variables and targets are expensive to build, so only build if explicitly requested
@@ -44,3 +74,61 @@ endif
 .PHONY: benchmark
 benchmark:
 	$(GOTEST) -bench=./...
+
+.PHONY: addlicense
+addlicense:
+	@ADDLICENCESEOUT=`$(ADDLICENCESE) -y "" -c 'Splunk, Inc.' $(ALL_SRC) 2>&1`; \
+		if [ "$$ADDLICENCESEOUT" ]; then \
+			echo "$(ADDLICENCESE) FAILED => add License errors:\n"; \
+			echo "$$ADDLICENCESEOUT\n"; \
+			exit 1; \
+		else \
+			echo "Add License finished successfully"; \
+		fi
+
+.PHONY: checklicense
+checklicense:
+	@ADDLICENCESEOUT=`$(ADDLICENCESE) -check $(ALL_SRC) 2>&1`; \
+		if [ "$$ADDLICENCESEOUT" ]; then \
+			echo "$(ADDLICENCESE) FAILED => add License errors:\n"; \
+			echo "$$ADDLICENCESEOUT\n"; \
+			echo "Use 'make addlicense' to fix this."; \
+			exit 1; \
+		else \
+			echo "Check License finished successfully"; \
+		fi
+
+.PHONY: checklinks
+checklinks:
+	command -v $(MDLINKCHECK) >/dev/null 2>&1 || { echo >&2 "$(MDLINKCHECK) not installed. Run 'npm install -g markdown-link-check'"; exit 1; }
+	find . -name \*.md -print0 | xargs -0 -n1 \
+		$(MDLINKCHECK) -q -c $(SRC_ROOT)/.github/workflows/check_links_config.json || true
+
+.PHONY: fmt
+fmt: addlicense misspell-correction
+	gofumpt -l -w -extra .
+	gofmt -w -s .
+	goimports -w  -local github.com/signalfx/splunk-otel-collector,github.com/signalfx/signalfx-agent ./
+	fieldalignment -fix ./... || true
+
+.PHONY: lint
+lint: checklicense misspell
+	$(LINT) run --allow-parallel-runners -j$(NUM_CORES)
+
+.PHONY: tidy
+tidy:
+	rm -fr go.sum
+	$(GOCMD) mod tidy
+
+.PHONY: misspell
+misspell:
+	@echo "running $(MISSPELL)"
+	@$(MISSPELL) $(ALL_SRC_AND_DOC)
+
+.PHONY: misspell-correction
+misspell-correction:
+	$(MISSPELL_CORRECTION) $(ALL_SRC_AND_DOC)
+
+.PHONY: moddownload
+moddownload:
+	$(GOCMD) mod download

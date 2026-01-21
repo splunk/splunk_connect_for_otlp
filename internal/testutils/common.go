@@ -57,13 +57,13 @@ func GetConfigVariable(configPath, key string) (string, error) {
 	// Read YAML file
 	fileData, err := os.ReadFile(configPath)
 	if err != nil {
-		return "", fmt.Errorf("Error reading file: %v", err)
+		return "", fmt.Errorf("error reading file: %v", err)
 	}
 
 	var config IntegrationTestsConfig
 	err = yaml.Unmarshal(fileData, &config)
 	if err != nil {
-		return "", fmt.Errorf("Error decoding YAML: %v", err)
+		return "", fmt.Errorf("error decoding YAML: %v", err)
 	}
 
 	switch key {
@@ -74,8 +74,8 @@ func GetConfigVariable(configPath, key string) (string, error) {
 	case "TRACE_INDEX":
 		return config.TraceIndex, nil
 	default:
-		fmt.Println("Invalid field")
-		return "None", fmt.Errorf("Invalid field %v", key)
+		fmt.Println("invalid field")
+		return "None", fmt.Errorf("invalid field %v", key)
 	}
 }
 
@@ -215,7 +215,12 @@ func GetFreePort(t *testing.T) int {
 	if err != nil {
 		t.Fatalf("failed to listen on ephemeral port: %v", err)
 	}
-	defer l.Close()
+	defer func() {
+		err = l.Close()
+		if err != nil {
+			t.Fatalf("failed to close ephemeral port: %v", err)
+		}
+	}()
 	return l.Addr().(*net.TCPAddr).Port
 }
 

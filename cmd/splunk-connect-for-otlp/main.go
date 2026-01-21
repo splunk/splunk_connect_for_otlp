@@ -7,6 +7,10 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
+	"os"
+	"runtime/debug"
+
 	"github.com/splunk/otlp2splunk/internal"
 	"github.com/splunk/otlp2splunk/internal/exporter/stdoutexporter"
 	"go.opentelemetry.io/collector/component"
@@ -17,9 +21,6 @@ import (
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	noopmetric "go.opentelemetry.io/otel/metric/noop"
 	"go.opentelemetry.io/otel/trace/noop"
-	"log"
-	"os"
-	"runtime/debug"
 )
 
 func main() {

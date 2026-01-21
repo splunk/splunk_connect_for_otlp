@@ -36,6 +36,15 @@ splunk: splunk-connect-for-otlp.tgz
 		-p 8000:8000 \
 		splunk/splunk:9.3
 
+.PHONY: install-tools
+install-tools:
+	cd ./internal/tools && go install github.com/client9/misspell/cmd/misspell
+	cd ./internal/tools && go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint
+	cd ./internal/tools && go install github.com/google/addlicense
+	cd ./internal/tools && go install golang.org/x/tools/cmd/goimports
+	cd ./internal/tools && go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment
+	cd ./internal/tools && go install mvdan.cc/gofumpt
+
 # Define a delegation target for each module
 .PHONY: $(ALL_MODS)
 $(ALL_MODS):
@@ -46,6 +55,21 @@ $(ALL_MODS):
 .PHONY: for-all-target
 for-all-target: $(ALL_MODS)
 
+.PHONY: tidy-all
+tidy-all:
+	$(MAKE) for-all-target TARGET="tidy"
+	$(MAKE) tidy
+
+.PHONY: fmt-all
+fmt-all:
+	$(MAKE) for-all-target TARGET="fmt"
+	$(MAKE) fmt
+
+.PHONY: lint-all
+lint-all:
+	$(MAKE) for-all-target TARGET="lint"
+	$(MAKE) lint
+
 .PHONY: test-all
 test-all:
 	$(MAKE) for-all-target TARGET="test"
@@ -54,13 +78,6 @@ test-all:
 .PHONY: benchmark-all
 benchmark-all:
 	$(MAKE) for-all-target TARGET="benchmark"
-
-.PHONY: gotidy
-gotidy:
-	@for mod in $$(find . -name go.mod | xargs dirname); do \
-		echo "Tidying $$mod"; \
-		(cd $$mod && rm -rf go.sum && $(GOCMD) mod tidy -compat=1.24.0 && $(GOCMD) get toolchain@none) || exit $?; \
-	done
 
 ifeq ($(COVER_TESTING),true)
 # These targets are expensive to build, so only build if explicitly requested

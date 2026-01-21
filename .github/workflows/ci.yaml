@@ -9,28 +9,78 @@ on:
 permissions: read-all
 
 jobs:
-  checks:
-    timeout-minutes: 10
-    runs-on: ubuntu-latest
+  tidy:
+    name: tidy
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-      - run: make gotidy
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-environment
+
       - name: tidy
         run: |
-          git diff --exit-code || (echo 'go.mod/go.sum deps changes detected, please run "make gotidy" and commit the changes in this PR.' && exit 1)
-  ci:
+          make tidy-all
+          if ! git diff --exit-code; then
+            echo "One or more Go files are not tidied. Run 'make tidy-all' and push the changes."
+            exit 1
+          fi
+
+  gofmt:
+    name: gofmt
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-environment
+
+      - name: gofmt
+        run: |
+          make fmt-all
+          if ! git diff --exit-code; then
+            echo "One or more Go files are not formatted correctly. Run 'make fmt-all' and push the changes."
+            exit 1
+          fi
+
+  lint:
+    name: lint
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-environment
+
+      - run: echo "GOLANGCI_LINT_CACHE=${HOME}/.cache/golangci-lint" >> "$GITHUB_ENV"
+
+      - uses: actions/cache@v4
+        with:
+          path: ${{ env.GOLANGCI_LINT_CACHE }}
+          key: golangci-lint-${{ hashFiles('**/.golangci.yml', '**/*.go', '**/go.sum') }}
+
+      - name: Lint
+        run: |
+          make lint-all
+  build:
     timeout-minutes: 30
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-      - uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5
-        with:
-          go-version: "1.24.0"
-          cache: true
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-environment
+
       - name: Build
         run: make tgz
+
+  test:
+    timeout-minutes: 30
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-environment
       - name: Tests
         run: make test-all
+
+  benchmark:
+    timeout-minutes: 30
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-environment
       - name: Benchmarks
         run: make benchmark-all
 

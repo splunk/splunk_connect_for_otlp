@@ -5,10 +5,11 @@ package stdoutexporter
 
 import (
 	"encoding/hex"
-	"github.com/splunk/otlp2splunk/internal/testutils"
-	"go.opentelemetry.io/collector/component/componenttest"
 	"os"
 	"testing"
+
+	"github.com/splunk/otlp2splunk/internal/testutils"
+	"go.opentelemetry.io/collector/component/componenttest"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -114,8 +115,7 @@ func logsTest(t *testing.T, test testCfg) {
 	require.NoError(t, err)
 	err = exporter.Start(t.Context(), componenttest.NewNopHost())
 	require.NoError(t, err)
-	var out string
-	out = testutils.CaptureStdout(t, func() {
+	out := testutils.CaptureStdout(t, func() {
 		err = exporter.ConsumeLogs(t.Context(), logs)
 	})
 
@@ -135,8 +135,7 @@ func metricsTest(t *testing.T, test testCfg) {
 	err = exporter.Start(t.Context(), componenttest.NewNopHost())
 	require.NoError(t, err)
 
-	var out string
-	out = testutils.CaptureStdout(t, func() {
+	out := testutils.CaptureStdout(t, func() {
 		err = exporter.ConsumeMetrics(t.Context(), metricData)
 	})
 	require.NotEmpty(t, out)
@@ -144,7 +143,6 @@ func metricsTest(t *testing.T, test testCfg) {
 	expectedJson, err := os.ReadFile(test.expectedResultFilePath)
 	require.NoError(t, err)
 	require.Equal(t, out, string(expectedJson))
-
 }
 
 func tracesTest(t *testing.T, test testCfg) {
@@ -156,8 +154,7 @@ func tracesTest(t *testing.T, test testCfg) {
 	err = exporter.Start(t.Context(), componenttest.NewNopHost())
 	require.NoError(t, err)
 
-	var out string
-	out = testutils.CaptureStdout(t, func() {
+	out := testutils.CaptureStdout(t, func() {
 		err = exporter.ConsumeTraces(t.Context(), tracesData)
 	})
 	require.NotEmpty(t, out)

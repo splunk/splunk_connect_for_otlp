@@ -4,9 +4,11 @@
 # test to pass in CI when they should not.
 SHELL = /usr/bin/env bash
 .SHELLFLAGS = -o pipefail -c
-UNIX_SHELL_ON_WINDOWS := $(shell $(SHELL_CASE_EXP))
 
-ifeq ($(UNIX_SHELL_ON_WINDOWS),true)
+GOCMD?= go
+GOOS=$(shell $(GOCMD) env GOOS)
+
+ifeq ($(GOOS),windows)
 	# The "sed" transformation below is needed on Windows, since commands like `go list -f '{{ .Dir }}'`
 	# return Windows paths and such paths are incompatible with other *nix tools, like `find`,
 	# used by the Makefile shell.
@@ -22,7 +24,6 @@ endif
 GO_BUILD_TAGS=""
 GOTEST_OPT?= -v -timeout 180s --tags=$(GO_BUILD_TAGS)
 
-GOCMD?= go
 GOTEST=$(GOCMD) test
 ADDLICENSES= addlicense
 MDLINKCHECK=markdown-link-check

@@ -4,21 +4,24 @@
 package internal
 
 import (
-	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/component/componentstatus"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
+
+	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/component/componentstatus"
 )
 
-var _ component.Host = &TTYHost{}
-var _ componentstatus.Reporter = &TTYHost{}
+var (
+	_ component.Host           = &TTYHost{}
+	_ componentstatus.Reporter = &TTYHost{}
+)
 
 type TTYHost struct {
 	ErrStatus    chan error
-	shutdownOnce sync.Once
 	Extensions   map[component.ID]component.Component
+	shutdownOnce sync.Once
 }
 
 func (t *TTYHost) Start() {

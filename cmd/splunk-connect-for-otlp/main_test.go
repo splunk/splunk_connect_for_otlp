@@ -67,7 +67,6 @@ func TestExpectedHEC(t *testing.T) {
 		inputPath    string
 		expectedPath string
 	}{
-
 		{
 			name:         "metrics",
 			otlpendpoint: "/v1/metrics",
